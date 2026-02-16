@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>זמני תפילות לשבת קודש</title>
+    <style>
+      @page {
+        size: A4;
+        margin: 0;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'David', 'Frank Ruhl Libre', 'Noto Serif Hebrew', 'Times New Roman', serif;
+        direction: rtl;
+        text-align: center;
+        background: #f0ede8;
+        color: #1a1a1a;
+        padding: 10px;
+        width: 210mm;
+        max-width: 210mm;
+        margin: 0 auto;
+      }
+
+      /* Page frame and background */
+      .page-frame {
+        padding: 15px 15px;
+        position: relative;
+        background-image: url('assets/shabbat_bg_a4.jpg');
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+        width: 100%;
+        min-height: 297mm;
+      }
+
+      /* Loading overlay */
+      #loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        transition: opacity 0.3s;
+      }
+
+      #loading-overlay.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .spinner-container {
+        text-align: center;
+      }
+
+      .spinner {
+        width: 48px;
+        height: 48px;
+        border: 4px solid #ddd;
+        border-top-color: #333;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .spinner-text {
+        font-size: 20px;
+        color: #555;
+      }
+
+      /* Toolbar */
+      .toolbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        background: #f0f0f0;
+        border-bottom: 1px solid #ccc;
+        padding: 8px 20px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        z-index: 500;
+      }
+
+      .toolbar button {
+        font-family: inherit;
+        font-size: 15px;
+        padding: 6px 16px;
+        border: 1px solid #999;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        direction: rtl;
+      }
+
+      .toolbar button:hover {
+        background: #e8e8e8;
+      }
+
+      .page-content {
+        margin-top: 50px;
+      }
+
+      /* Header */
+      .header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 0px;
+      }
+
+      .logo {
+        width: 120px;
+        height: auto;
+        margin-bottom: -5px;
+      }
+
+      .bsd {
+        font-size: 16px;
+        font-weight: bold;
+        margin-bottom: -2px;
+        letter-spacing: 2px;
+      }
+
+      .main-title {
+        font-size: 36px;
+        font-weight: normal;
+        margin: 0 0 2px 0;
+        letter-spacing: 1px;
+      }
+
+      .main-title .parasha-value {
+        font-weight: bold;
+      }
+
+      .decorative-line {
+        width: 80%;
+        max-width: 500px;
+        height: 2px;
+        background: linear-gradient(to right, transparent, #333, transparent);
+        margin: 4px auto;
+      }
+
+      .decorative-line.thick {
+        height: 3px;
+        background: linear-gradient(to right, transparent, #000, transparent);
+      }
+
+      /* Parasha is merged into main-title */
+
+      .mevarchim-text {
+        font-size: 21px;
+        font-weight: bold;
+        color: #333;
+        margin: 2px 0 1px;
+      }
+
+      .date-line {
+        font-size: 18px;
+        margin: 3px 0;
+        color: #222;
+      }
+
+      .hebrew-date {
+        font-size: 18px;
+        color: #222;
+      }
+
+      .date-separator {
+        color: #999;
+        margin: 0 4px;
+      }
+
+      .gregorian-date {
+        font-size: 15px;
+        color: #777;
+      }
+
+      /* Sections */
+      .section {
+        margin: 6px 0;
+        width: 100%;
+      }
+
+      .section-title {
+        font-size: 22px;
+        font-weight: bold;
+        background: #666;
+        color: white;
+        padding: 4px 30px;
+        display: inline-block;
+        border-radius: 4px;
+        margin-bottom: 5px;
+        letter-spacing: 1px;
+      }
+
+      /* Times tables */
+      .times-table {
+        width: 85%;
+        max-width: 550px;
+        margin: 0 auto;
+        border-collapse: collapse;
+      }
+
+      .times-table tr {
+        border-bottom: 1px dotted #999;
+      }
+
+      .times-table tr:last-child {
+        border-bottom: none;
+      }
+
+      .times-table td {
+        padding: 5px 10px;
+        font-size: 24px;
+        vertical-align: middle;
+      }
+
+      .times-table .label-cell {
+        text-align: right;
+        font-weight: bold;
+        width: 65%;
+      }
+
+      .times-table .time-cell {
+        text-align: center;
+        width: 35%;
+        font-size: 25px;
+        font-weight: bold;
+        direction: ltr;
+        letter-spacing: 1px;
+      }
+
+      .time-value {
+        display: inline-block;
+        min-width: 60px;
+        padding: 2px 8px;
+        border-radius: 3px;
+        cursor: text;
+      }
+
+      .time-value:hover {
+        background: #f0f0f0;
+      }
+
+      .time-value:focus {
+        outline: 2px solid #666;
+        background: #fff;
+      }
+
+      .time-placeholder {
+        display: inline-block;
+        border-bottom: 2px solid #666;
+        min-width: 80px;
+        height: 26px;
+      }
+
+      .note-text {
+        font-size: 18px;
+        font-weight: normal;
+        color: #666;
+      }
+
+      /* Shabbat times box */
+      .shabbat-times-box {
+        border: 3px solid #000;
+        border-radius: 10px;
+        padding: 3px 10px;
+        margin: 3px auto;
+        width: 85%;
+        max-width: 550px;
+        background: rgba(255, 255, 255, 0.5);
+      }
+
+      .shabbat-times-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .shabbat-times-table td {
+        padding: 2px 10px;
+        font-size: 20px;
+        vertical-align: middle;
+      }
+
+      .shabbat-times-table .label-cell {
+        text-align: right;
+        font-weight: bold;
+        width: 65%;
+      }
+
+      .shabbat-times-table .time-cell {
+        text-align: center;
+        width: 35%;
+        font-size: 22px;
+        font-weight: bold;
+        direction: ltr;
+      }
+
+      .shabbat-times-table tr.zman-primary td {
+        font-size: 22px;
+      }
+
+      .shabbat-times-table tr.zman-primary .time-cell {
+        font-size: 24px;
+      }
+
+      .shabbat-times-table tr.zman-separator td {
+        border-bottom: 1px solid #aaa;
+      }
+
+      /* Footer */
+      .footer {
+        margin-top: 10px;
+        padding-top: 6px;
+        border-top: 2px solid #333;
+        font-size: 16px;
+        color: #444;
+      }
+
+      .footer .chabad-name {
+        font-size: 25px;
+        font-weight: bold;
+        color: #000;
+        letter-spacing: 1px;
+      }
+
+      .footer .address {
+        font-size: 16px;
+        color: #444;
+        margin-top: 2px;
+      }
+
+      .footer .motto {
+        font-size: 15px;
+        font-weight: bold;
+        margin-top: 4px;
+        color: #333;
+        letter-spacing: 0.5px;
+      }
+
+      /* Error message */
+      .error-msg {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        padding: 8px 15px;
+        border-radius: 5px;
+        margin: 10px auto;
+        max-width: 500px;
+        font-size: 16px;
+        display: none;
+      }
+
+      /* Print styles */
+      @media print {
+        .no-print,
+        .toolbar {
+          display: none !important;
+        }
+
+        .page-content {
+          margin-top: 0;
+        }
+
+        body {
+          padding: 0;
+          margin: 0;
+          width: 210mm;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .page-frame {
+          width: 100%;
+          height: 277mm;
+          max-height: 277mm;
+          padding: 12px 15px;
+          overflow: hidden;
+          page-break-inside: avoid;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+
+        .time-value:hover {
+          background: transparent;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+      <div class="spinner-container">
+        <div class="spinner"></div>
+        <div class="spinner-text">טוען זמני שבת...</div>
+      </div>
+    </div>
+
+    <!-- Toolbar (hidden in print) -->
+    <div class="toolbar no-print">
+      <button onclick="window.print()">🖨️ הדפסה</button>
+      <button onclick="loadShabbatData()">🔄 רענון נתונים</button>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <div class="page-frame">
+        <div class="header">
+          <div class="bsd">בס״ד</div>
+          <img
+            src="assets/chabad_or_yehuda_grayscale_logo_v3_transparent.png"
+            alt="לוגו בית חב״ד המרכזי אור יהודה"
+            class="logo"
+          />
+        </div>
+
+        <div class="main-title">זמני תפילות לשבת <span class="parasha-value" id="parasha-name">...</span></div>
+
+        <div class="decorative-line thick"></div>
+
+        <!-- Error message -->
+        <div class="error-msg" id="error-msg"></div>
+
+        <!-- Mevarchim indicator -->
+        <div class="mevarchim-text" id="mevarchim-line" style="display: none"></div>
+
+        <!-- Date line -->
+        <div class="date-line">
+          <span class="hebrew-date" id="hebrew-date">...</span>
+          <span class="date-separator"> | </span>
+          <span class="gregorian-date" id="gregorian-date"></span>
+        </div>
+
+        <div class="decorative-line"></div>
+
+        <!-- Zmanim Block -->
+        <div class="section">
+          <div class="section-title">זמני היום</div>
+          <div class="shabbat-times-box">
+            <table class="shabbat-times-table">
+              <tr class="zman-primary zman-separator">
+                <td class="label-cell">הדלקת נרות</td>
+                <td class="time-cell">
+                  <span class="time-value" id="candle-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr class="zman-separator">
+                <td class="label-cell">שקיעה</td>
+                <td class="time-cell">
+                  <span class="time-value" id="sunset-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr class="zman-separator">
+                <td class="label-cell">סוף זמן קריאת שמע</td>
+                <td class="time-cell">
+                  <span class="time-value" id="shema-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr class="zman-separator">
+                <td class="label-cell">חצות</td>
+                <td class="time-cell">
+                  <span class="time-value" id="chatzot-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr class="zman-primary">
+                <td class="label-cell">צאת שבת</td>
+                <td class="time-cell">
+                  <span class="time-value" id="havdalah-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <div class="decorative-line"></div>
+
+        <!-- Erev Shabbat -->
+        <div class="section">
+          <div class="section-title">ערב שבת</div>
+          <table class="times-table">
+            <tr>
+              <td class="label-cell">מנחה</td>
+              <td class="time-cell">
+                <span class="time-value" id="friday-mincha" contenteditable="true">...</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">קבלת שבת וערבית</td>
+              <td class="time-cell">
+                <span class="time-value note-text" id="friday-arvit" contenteditable="true">בהמשך למנחה</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="decorative-line"></div>
+
+        <!-- Shabbat Morning -->
+        <div class="section">
+          <div class="section-title">שבת בבוקר</div>
+          <table class="times-table">
+            <tr>
+              <td class="label-cell">חסידות</td>
+              <td class="time-cell">
+                <span class="time-value" contenteditable="true">9:00</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell" id="shacharit-label">שחרית</td>
+              <td class="time-cell">
+                <span class="time-value" id="shacharit-time" contenteditable="true">...</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">לילדים: אמירת י״ב פסוקים</td>
+              <td class="time-cell">
+                <span class="time-value" contenteditable="true">12:20</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">התוועדות חסידית</td>
+              <td class="time-cell">
+                <span class="time-value" id="hitvaadut-time" contenteditable="true">12:30</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="decorative-line"></div>
+
+        <!-- Shabbat Afternoon/Evening -->
+        <div class="section">
+          <div class="section-title">שבת אחר הצהריים</div>
+          <table class="times-table">
+            <tr>
+              <td class="label-cell">מנחה</td>
+              <td class="time-cell">
+                <span class="time-value" id="shabbat-mincha" contenteditable="true">...</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">סדר ניגונים וחזרת דא״ח</td>
+              <td class="time-cell">
+                <span class="time-value note-text" contenteditable="true">בהמשך למנחה</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="label-cell">ערבית מוצאי שבת</td>
+              <td class="time-cell">
+                <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="decorative-line thick"></div>
+
+        <div class="footer">
+          <div class="chabad-name">בית חב״ד המרכזי אור יהודה</div>
+          <div class="address">דוד אלעזר 30, שכונת גיורא, אור יהודה</div>
+          <div class="motto">יחי אדוננו מורנו ורבינו מלך המשיח לעולם ועד</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const CONFIG = {
+        geonameid: 293397,
+        candleMinutes: 20,
+        shacharitDefault: '10:00',
+        shacharitMevarchim: '10:30',
+      };
+
+      const HEBREW_MONTHS = {
+        Nisan: 'ניסן',
+        Iyyar: 'אייר',
+        Sivan: 'סיוון',
+        Tamuz: 'תמוז',
+        Av: 'אב',
+        Elul: 'אלול',
+        Tishrei: 'תשרי',
+        Cheshvan: 'חשוון',
+        Kislev: 'כסלו',
+        Tevet: 'טבת',
+        "Sh'vat": 'שבט',
+        Adar: 'אדר',
+        'Adar I': 'אדר א׳',
+        'Adar II': 'אדר ב׳',
+      };
+
+      function formatDateParam(date) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const d = String(date.getDate()).padStart(2, '0');
+        return `${y}-${m}-${d}`;
+      }
+
+      function extractTime(isoString) {
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('he-IL', {
+          timeZone: 'Asia/Jerusalem',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+      }
+
+      function subtractMinutes(isoString, minutes) {
+        const date = new Date(isoString);
+        date.setMinutes(date.getMinutes() - minutes);
+        return date.toLocaleTimeString('he-IL', {
+          timeZone: 'Asia/Jerusalem',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        });
+      }
+
+      function stripNikkud(str) {
+        return str.replace(/[\u0591-\u05C7]/g, '');
+      }
+
+      function formatGregorianRange(fridayIso, saturdayIso) {
+        const fri = new Date(fridayIso);
+        const sat = new Date(saturdayIso);
+        const months = [
+          'ינואר',
+          'פברואר',
+          'מרץ',
+          'אפריל',
+          'מאי',
+          'יוני',
+          'יולי',
+          'אוגוסט',
+          'ספטמבר',
+          'אוקטובר',
+          'נובמבר',
+          'דצמבר',
+        ];
+        if (fri.getMonth() === sat.getMonth()) {
+          return `${fri.getDate()}-${sat.getDate()} ב${months[fri.getMonth()]} ${fri.getFullYear()}`;
+        }
+        return `${fri.getDate()} ב${months[fri.getMonth()]} - ${sat.getDate()} ב${
+          months[sat.getMonth()]
+        } ${fri.getFullYear()}`;
+      }
+
+      function showLoading(show) {
+        const overlay = document.getElementById('loading-overlay');
+        if (show) {
+          overlay.classList.remove('hidden');
+        } else {
+          overlay.classList.add('hidden');
+        }
+      }
+
+      function showError(message) {
+        const el = document.getElementById('error-msg');
+        el.textContent = message;
+        el.style.display = 'block';
+      }
+
+      function hideError() {
+        document.getElementById('error-msg').style.display = 'none';
+      }
+
+      async function fetchJSON(url) {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }
+
+      async function loadShabbatData() {
+        showLoading(true);
+        hideError();
+
+        try {
+          // 1) Fetch upcoming Shabbat data from Hebcal
+          const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}`;
+          const shabbatData = await fetchJSON(shabbatUrl);
+
+          let candles = null;
+          let havdalah = null;
+          let parasha = null;
+
+          for (const item of shabbatData.items) {
+            if (item.category === 'candles' && !candles) candles = item;
+            if (item.category === 'havdalah' && !havdalah) havdalah = item;
+            if (item.category === 'parashat' && !parasha) parasha = item;
+          }
+
+          if (!candles || !havdalah) {
+            throw new Error('Could not find candle lighting or havdalah times');
+          }
+
+          // 2) Extract Friday and Saturday dates
+          const fridayDateStr = candles.date.substring(0, 10);
+          const saturdayDateStr = havdalah.date.substring(0, 10);
+
+          // 3) Fetch Zmanim (sunset) for Friday and Saturday
+          const [zmanimFriday, zmanimSaturday] = await Promise.all([
+            fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${fridayDateStr}`),
+            fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${saturdayDateStr}`),
+          ]);
+
+          const fridaySunsetIso = zmanimFriday.times.sunset;
+          const saturdaySunsetIso = zmanimSaturday.times.sunset;
+
+          // 4) Fetch Hebrew date for Shabbat (Saturday)
+          const hebrewDateData = await fetchJSON(
+            `https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1&gs=on`,
+          );
+
+          // 5) Check Shabbat Mevarchim: compare Hebrew month with next Shabbat
+          const nextSaturday = new Date(saturdayDateStr);
+          nextSaturday.setDate(nextSaturday.getDate() + 7);
+          const nextSatStr = formatDateParam(nextSaturday);
+
+          const nextHebrewDate = await fetchJSON(
+            `https://www.hebcal.com/converter?cfg=json&date=${nextSatStr}&g2h=1&gs=on`,
+          );
+
+          const isMevarchim =
+            hebrewDateData.hm !== nextHebrewDate.hm && nextHebrewDate.hm !== 'Tishrei' && hebrewDateData.hd < 30;
+
+          // ── Fill in the data ──
+
+          // Parasha
+          const parashaEl = document.getElementById('parasha-name');
+          if (parasha) {
+            const name = parasha.hebrew.replace(/^פרשת\s*/, '');
+            parashaEl.textContent = name;
+          } else {
+            parashaEl.textContent = '—';
+          }
+
+          // Mevarchim indicator
+          const mevarchimEl = document.getElementById('mevarchim-line');
+          if (isMevarchim) {
+            const nextMonthHeb = HEBREW_MONTHS[nextHebrewDate.hm] || nextHebrewDate.hm;
+            mevarchimEl.textContent = `שבת מברכים חודש ${nextMonthHeb}`;
+            mevarchimEl.style.display = 'block';
+          } else {
+            mevarchimEl.style.display = 'none';
+          }
+
+          // Hebrew date (without nikkud)
+          document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew);
+
+          // Gregorian date
+          document.getElementById('gregorian-date').textContent = formatGregorianRange(fridayDateStr, saturdayDateStr);
+
+          // Candle lighting & Havdalah
+          const candleTime = extractTime(candles.date);
+          const havdalahTime = extractTime(havdalah.date);
+          document.getElementById('candle-time').textContent = candleTime;
+          document.getElementById('havdalah-time').textContent = havdalahTime;
+
+          // Sunset (Friday)
+          const fridaySunsetTime = extractTime(fridaySunsetIso);
+          document.getElementById('sunset-time').textContent = fridaySunsetTime;
+
+          // Sof Zman Kriat Shema (Saturday - GR"A)
+          const shemaIso = zmanimSaturday.times.sofZmanShma;
+          if (shemaIso) document.getElementById('shema-time').textContent = extractTime(shemaIso);
+
+          // Chatzot (Saturday)
+          const chatzotIso = zmanimSaturday.times.chatzot;
+          if (chatzotIso) document.getElementById('chatzot-time').textContent = extractTime(chatzotIso);
+
+          // Friday Mincha = sunset time on Friday
+          document.getElementById('friday-mincha').textContent = fridaySunsetTime;
+
+          // Shacharit: 10:00 or 10:30 if Mevarchim
+          const shacharitTime = isMevarchim ? CONFIG.shacharitMevarchim : CONFIG.shacharitDefault;
+          document.getElementById('shacharit-time').textContent = shacharitTime;
+          if (isMevarchim) {
+            document.getElementById('shacharit-label').innerHTML =
+              'שחרית <span style="font-size:16px;color:#555;">(שבת מברכים)</span>';
+          }
+
+          // Shabbat Mincha = sunset time on Saturday
+          const saturdaySunsetTime = extractTime(saturdaySunsetIso);
+          document.getElementById('shabbat-mincha').textContent = saturdaySunsetTime;
+
+          // Arvit Motzei Shabbat = Havdalah time
+          document.getElementById('motzei-arvit').textContent = havdalahTime;
+        } catch (error) {
+          console.error('Error loading Shabbat data:', error);
+          showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+
+          document.getElementById('parasha-name').textContent = '___________';
+          document.getElementById('hebrew-date').textContent = '___ ב___ תשפ״ו';
+          const placeholders = [
+            'candle-time',
+            'havdalah-time',
+            'friday-mincha',
+            'shacharit-time',
+            'shabbat-mincha',
+            'motzei-arvit',
+          ];
+          placeholders.forEach((id) => {
+            document.getElementById(id).textContent = '__:__';
+          });
+        } finally {
+          showLoading(false);
+        }
+      }
+
+      document.addEventListener('DOMContentLoaded', loadShabbatData);
+    </script>
+  </body>
+</html>
