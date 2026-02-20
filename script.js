@@ -235,4 +235,10 @@ async function loadShabbatData() {
   }
 }
 
+function togglePrintMode() {
+  const btn = document.getElementById('print-mode-btn');
+  const isEco = document.body.classList.toggle('print-eco');
+  btn.textContent = isEco ? '🌿 חיסכון בדיו' : '🎨 הדפסה עשירה';
+}
+
 document.addEventListener('DOMContentLoaded', loadShabbatData);

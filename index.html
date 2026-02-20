@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700&family=Suez+One&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="print-eco">
     <!-- Loading Overlay -->
     <div id="loading-overlay">
       <div class="spinner-container">
@@ -21,6 +21,7 @@
     <!-- Toolbar (hidden in print) -->
     <div class="toolbar no-print">
       <button onclick="window.print()">🖨️ הדפסה</button>
+      <button id="print-mode-btn" onclick="togglePrintMode()">🌿 חיסכון בדיו</button>
       <button onclick="loadShabbatData()">🔄 רענון נתונים</button>
     </div>
 

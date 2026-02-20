@@ -221,6 +221,7 @@ body {
   font-weight: normal;
   margin: 0;
   letter-spacing: 1px;
+  color: #1a2d4d;
   text-shadow:
     0 2px 3px rgba(0, 0, 0, 0.1),
     0 1px 0 rgba(255, 255, 255, 0.6),
@@ -232,7 +233,7 @@ body {
   font-size: 1.25em;
   display: inline-block;
   padding: 0 6px 2px;
-  border-bottom: 3px solid rgba(0, 0, 0, 0.35);
+  border-bottom: 3px solid #b8860b;
 }
 
 .decorative-line {
@@ -243,9 +244,9 @@ body {
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(0, 0, 0, 0.3) 15%,
-    rgba(0, 0, 0, 0.5) 50%,
-    rgba(0, 0, 0, 0.3) 85%,
+    #8a7340 15%,
+    #b8860b 50%,
+    #8a7340 85%,
     transparent 100%
   );
   box-shadow:
@@ -260,7 +261,7 @@ body {
   font-family: 'Heebo', sans-serif;
   font-size: 24px;
   font-weight: 700;
-  color: #333;
+  color: #1a2d4d;
   margin: 2px 0 0;
 }
 
@@ -347,12 +348,12 @@ body {
   display: inline-block;
   margin-bottom: 8px;
   letter-spacing: 1.5px;
-  background: linear-gradient(180deg, #8a8a8a 0%, #6a6a6a 25%, #555 50%, #444 75%, #333 100%);
+  background: linear-gradient(180deg, #3d6098 0%, #2c4a7c 25%, #243f6c 50%, #1e355c 75%, #1a2d4d 100%);
   border-radius: 8px;
-  border-top: 1px solid #aaa;
-  border-left: 1px solid #999;
-  border-right: 1px solid #333;
-  border-bottom: 2px solid #222;
+  border-top: 1px solid #5a7fad;
+  border-left: 1px solid #4a6f9d;
+  border-right: 1px solid #1a2d4d;
+  border-bottom: 2px solid #142340;
   box-shadow:
     0 6px 12px rgba(0, 0, 0, 0.35),
     0 3px 6px rgba(0, 0, 0, 0.25),
@@ -553,7 +554,7 @@ body {
   font-size: 20px;
   font-weight: 700;
   margin-top: 6px;
-  color: #333;
+  color: #1a2d4d;
   letter-spacing: 0.5px;
   text-shadow:
     0 1px 2px rgba(0, 0, 0, 0.06),
@@ -572,7 +573,7 @@ body {
   display: none;
 }
 
-/* Print styles */
+/* Print styles - common (both eco and rich modes) */
 @media print {
   .no-print,
   .toolbar {
@@ -607,57 +608,115 @@ body {
   }
 
   .page-frame::before {
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
+    border: 2px solid #888;
+    box-shadow: none;
   }
 
   .page-frame::after {
-    top: 16px;
-    left: 16px;
-    right: 16px;
-    bottom: 16px;
+    border: 1px solid #ddd;
   }
 
   .time-value:hover {
     background: transparent;
   }
 
+  .main-title {
+    text-shadow: none;
+  }
+
   .section {
     margin: 4px 28px;
     padding: 5px 14px;
-    box-shadow:
-      0 2px 6px rgba(0, 0, 0, 0.1),
-      inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    border: 1px solid #ccc;
+    box-shadow: none;
     backdrop-filter: none;
   }
 
   .section-title {
     padding: 6px 44px;
     margin-bottom: 5px;
-    box-shadow:
-      0 2px 4px rgba(0, 0, 0, 0.3),
-      0 1px 2px rgba(0, 0, 0, 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+    text-shadow: none;
   }
 
   .shabbat-times-box {
-    box-shadow:
-      inset 0 1px 3px rgba(0, 0, 0, 0.06),
-      0 1px 0 rgba(255, 255, 255, 0.4);
+    border: 1px solid #ddd;
+    box-shadow: none;
+  }
+
+  .decorative-line {
+    margin: 1px auto;
+    background: #999;
+    box-shadow: none;
   }
 
   .times-table td {
     padding: 5px 12px;
   }
 
-  .decorative-line {
-    margin: 1px auto;
+  .times-table tr {
+    border-bottom: 1px solid #ddd;
+    box-shadow: none;
+  }
+
+  .times-table tr:nth-child(odd) {
+    background: #f5f5f5;
+  }
+
+  .zman-item:nth-child(-n+3) {
+    border-bottom: 1px solid #ddd;
+    box-shadow: none;
   }
 
   .footer {
     margin: 8px -10px 0;
     padding: 10px 30px 8px;
+    box-shadow: none;
+  }
+
+  .footer .chabad-name {
+    text-shadow: none;
+  }
+
+  .footer .motto {
+    text-shadow: none;
+  }
+}
+
+/* Print styles - eco mode only */
+@media print {
+  body.print-eco {
+    background: white;
+  }
+
+  body.print-eco .page-frame {
+    background: white;
+  }
+
+  body.print-eco .section {
+    background: white;
+  }
+
+  body.print-eco .section-title {
+    background: white;
+    color: #333;
+    border: 2px solid #555;
+  }
+
+  body.print-eco .section-subtitle {
+    opacity: 1;
+    color: #666;
+  }
+
+  body.print-eco .shabbat-times-box {
+    background: transparent;
+  }
+
+  body.print-eco .section-shabbat::after {
+    display: none;
+  }
+
+  body.print-eco .footer {
+    background: none;
   }
 }
