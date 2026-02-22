@@ -3,7 +3,11 @@ const CONFIG = {
   candleMinutes: 20,
   shacharitDefault: '10:00',
   shacharitMevarchim: '10:30',
+  chassidutDefault: '9:00',
+  chassidutMevarchim: '8:30',
 };
+
+let weekOffset = 0;
 
 const HEBREW_MONTHS = {
   Nisan: 'ניסן',
@@ -104,22 +108,36 @@ async function fetchJSON(url) {
   return response.json();
 }
 
+function getTargetFriday() {
+  const now = new Date();
+  const day = now.getDay();
+  let daysUntilFriday = (5 - day + 7) % 7;
+  if (day === 6) daysUntilFriday = 6;
+  else if (day === 5) daysUntilFriday = 0;
+  const friday = new Date(now);
+  friday.setDate(friday.getDate() + daysUntilFriday + weekOffset * 7);
+  return friday;
+}
+
 async function loadShabbatData() {
   showLoading(true);
   hideError();
 
   try {
-    const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}`;
+    const friday = getTargetFriday();
+    const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}&gy=${friday.getFullYear()}&gm=${friday.getMonth() + 1}&gd=${friday.getDate()}`;
     const shabbatData = await fetchJSON(shabbatUrl);
 
     let candles = null;
     let havdalah = null;
     let parasha = null;
+    let specialShabbat = null;
 
     for (const item of shabbatData.items) {
       if (item.category === 'candles' && !candles) candles = item;
       if (item.category === 'havdalah' && !havdalah) havdalah = item;
       if (item.category === 'parashat' && !parasha) parasha = item;
+      if (item.category === 'holiday' && item.subcat === 'shabbat' && !specialShabbat) specialShabbat = item;
     }
 
     if (!candles || !havdalah) {
@@ -136,7 +154,7 @@ async function loadShabbatData() {
     const sunsetIso = zmanim.times.sunset;
 
     const hebrewDateData = await fetchJSON(
-      `https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1&gs=on`,
+      `https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1`,
     );
 
     const nextSaturday = new Date(saturdayDateStr);
@@ -144,17 +162,24 @@ async function loadShabbatData() {
     const nextSatStr = formatDateParam(nextSaturday);
 
     const nextHebrewDate = await fetchJSON(
-      `https://www.hebcal.com/converter?cfg=json&date=${nextSatStr}&g2h=1&gs=on`,
+      `https://www.hebcal.com/converter?cfg=json&date=${nextSatStr}&g2h=1`,
     );
 
     const isMevarchim =
       hebrewDateData.hm !== nextHebrewDate.hm && nextHebrewDate.hm !== 'Tishrei' && hebrewDateData.hd < 30;
 
-    // Parasha
+    // Parasha + special Shabbat name (e.g. תצוה · זכור)
     const parashaEl = document.getElementById('parasha-name');
     if (parasha) {
-      const name = parasha.hebrew.replace(/^פרשת\s*/, '');
-      parashaEl.textContent = name;
+      const parashaName = parasha.hebrew.replace(/^פרשת\s*/, '');
+      if (specialShabbat) {
+        const specialName = specialShabbat.hebrew.replace(/^שבת\s*/, '');
+        parashaEl.textContent = `${parashaName} · ${specialName}`;
+      } else {
+        parashaEl.textContent = parashaName;
+      }
+    } else if (specialShabbat) {
+      parashaEl.textContent = specialShabbat.hebrew;
     } else {
       parashaEl.textContent = '—';
     }
@@ -206,6 +231,17 @@ async function loadShabbatData() {
     if (isMevarchim) {
       document.getElementById('shacharit-label').innerHTML =
         'שחרית <span style="font-size:16px;color:#555;">(שבת מברכים)</span>';
+    } else {
+      document.getElementById('shacharit-label').textContent = 'שחרית';
+    }
+
+    // Chassidut / Tehillim on Mevarchim
+    if (isMevarchim) {
+      document.getElementById('chassidut-label').textContent = 'אמירת תהילים בציבור';
+      document.getElementById('chassidut-time').textContent = CONFIG.chassidutMevarchim;
+    } else {
+      document.getElementById('chassidut-label').textContent = 'חסידות';
+      document.getElementById('chassidut-time').textContent = CONFIG.chassidutDefault;
     }
 
     // Shabbat Mincha
@@ -235,10 +271,23 @@ async function loadShabbatData() {
   }
 }
 
-function togglePrintMode() {
-  const btn = document.getElementById('print-mode-btn');
-  const isEco = document.body.classList.toggle('print-eco');
-  btn.textContent = isEco ? '🌿 חיסכון בדיו' : '🎨 הדפסה עשירה';
+function toggleEcoMode(enabled) {
+  document.body.classList.toggle('eco-mode', enabled);
+}
+
+function updateWeekLabel() {
+  const label = document.getElementById('week-label');
+  if (weekOffset === 0) label.textContent = 'השבת הקרובה';
+  else if (weekOffset === 1) label.textContent = 'בעוד שבוע';
+  else if (weekOffset === -1) label.textContent = 'שבת שעברה';
+  else if (weekOffset > 1) label.textContent = `בעוד ${weekOffset} שבועות`;
+  else label.textContent = `לפני ${Math.abs(weekOffset)} שבועות`;
+}
+
+function changeWeek(delta) {
+  weekOffset += delta;
+  updateWeekLabel();
+  loadShabbatData();
 }
 
 document.addEventListener('DOMContentLoaded', loadShabbatData);

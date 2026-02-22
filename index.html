@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700&family=Suez+One&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="print-eco">
+  <body>
     <!-- Loading Overlay -->
     <div id="loading-overlay">
       <div class="spinner-container">
@@ -21,8 +21,16 @@
     <!-- Toolbar (hidden in print) -->
     <div class="toolbar no-print">
       <button onclick="window.print()">🖨️ הדפסה</button>
-      <button id="print-mode-btn" onclick="togglePrintMode()">🌿 חיסכון בדיו</button>
-      <button onclick="loadShabbatData()">🔄 רענון נתונים</button>
+      <label class="eco-toggle">
+        <span class="eco-label">🌿 חיסכון בדיו</span>
+        <input type="checkbox" id="eco-cb" onchange="toggleEcoMode(this.checked)" />
+        <span class="eco-slider"></span>
+      </label>
+      <div class="week-nav">
+        <button class="week-btn" onclick="changeWeek(1)" title="השבת הבאה">קדימה ›</button>
+        <span class="week-label" id="week-label">השבת הקרובה</span>
+        <button class="week-btn" onclick="changeWeek(-1)" title="שבת הקודמת">‹ אחורה</button>
+      </div>
     </div>
 
     <!-- Page Content -->
@@ -32,7 +40,7 @@
         <div class="header">
           <div class="header-content">
             <img
-              src="assets/chabad_or_yehuda_grayscale_logo_v3_transparent.png"
+              src="assets/chabad_or_yehuda_color_logo_transparent.png"
               alt="לוגו בית חב״ד המרכזי אור יהודה"
               class="logo"
             />
@@ -112,9 +120,9 @@
           <div class="section-title">שבת</div>
           <table class="times-table">
             <tr>
-              <td class="label-cell">חסידות</td>
+              <td class="label-cell" id="chassidut-label">חסידות</td>
               <td class="time-cell">
-                <span class="time-value" contenteditable="true">9:00</span>
+                <span class="time-value" id="chassidut-time" contenteditable="true">9:00</span>
               </td>
             </tr>
             <tr>

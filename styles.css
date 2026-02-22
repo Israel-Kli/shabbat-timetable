@@ -171,6 +171,43 @@ body {
   background: #e8e8e8;
 }
 
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  direction: ltr;
+}
+
+.week-label {
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  min-width: 110px;
+  text-align: center;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+.week-btn {
+  font-family: inherit;
+  font-size: 20px;
+  line-height: 1;
+  min-width: 70px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.week-btn:hover {
+  background: #e8e8e8;
+}
+
 .page-content {
   margin-top: 50px;
 }
@@ -222,10 +259,6 @@ body {
   margin: 0;
   letter-spacing: 1px;
   color: #1a2d4d;
-  text-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.1),
-    0 1px 0 rgba(255, 255, 255, 0.6),
-    0 -1px 0 rgba(0, 0, 0, 0.05);
 }
 
 .main-title .parasha-value {
@@ -360,15 +393,12 @@ body {
     0 1px 2px rgba(0, 0, 0, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.25),
     inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-  text-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.5),
-    0 1px 0 rgba(0, 0, 0, 0.4);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
 
 .section-subtitle {
-  font-size: 16px;
+  font-size: 20px;
   font-weight: normal;
   opacity: 0.8;
   letter-spacing: 0;
@@ -538,9 +568,6 @@ body {
   font-weight: normal;
   color: #000;
   letter-spacing: 1px;
-  text-shadow:
-    0 2px 3px rgba(0, 0, 0, 0.08),
-    0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .footer .address {
@@ -556,9 +583,6 @@ body {
   margin-top: 6px;
   color: #1a2d4d;
   letter-spacing: 0.5px;
-  text-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.06),
-    0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 /* Error message */
@@ -620,10 +644,6 @@ body {
     background: transparent;
   }
 
-  .main-title {
-    text-shadow: none;
-  }
-
   .section {
     margin: 4px 28px;
     padding: 5px 14px;
@@ -636,7 +656,6 @@ body {
     padding: 6px 44px;
     margin-bottom: 5px;
     box-shadow: none;
-    text-shadow: none;
   }
 
   .shabbat-times-box {
@@ -668,55 +687,132 @@ body {
     box-shadow: none;
   }
 
+  .section-shabbat {
+    background: linear-gradient(
+      160deg,
+      #fcfcfc 0%,
+      #f9f9f9 50%,
+      #f5f5f5 100%
+    );
+  }
+
+  .section-shabbat::after {
+    background-image: url('assets/shabbat_bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    opacity: 0.13;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .section-shabbat .times-table tr:nth-child(odd) {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .section-shabbat .times-table tr {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
   .footer {
     margin: 8px -10px 0;
     padding: 10px 30px 8px;
     box-shadow: none;
   }
 
-  .footer .chabad-name {
-    text-shadow: none;
-  }
-
-  .footer .motto {
-    text-shadow: none;
+  body.eco-mode .page-frame {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 }
 
-/* Print styles - eco mode only */
-@media print {
-  body.print-eco {
-    background: white;
-  }
+/* Eco toggle switch */
+.eco-toggle {
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  direction: rtl;
+  user-select: none;
+}
 
-  body.print-eco .page-frame {
-    background: white;
-  }
+.eco-label {
+  white-space: nowrap;
+}
 
-  body.print-eco .section {
-    background: white;
-  }
+.eco-toggle input {
+  display: none;
+}
 
-  body.print-eco .section-title {
-    background: white;
-    color: #333;
-    border: 2px solid #555;
-  }
+.eco-slider {
+  position: relative;
+  width: 42px;
+  height: 22px;
+  background: #ccc;
+  border-radius: 11px;
+  transition: background 0.25s;
+  flex-shrink: 0;
+}
 
-  body.print-eco .section-subtitle {
-    opacity: 1;
-    color: #666;
-  }
+.eco-slider::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s;
+}
 
-  body.print-eco .shabbat-times-box {
-    background: transparent;
-  }
+.eco-toggle input:checked + .eco-slider {
+  background: #4caf50;
+}
 
-  body.print-eco .section-shabbat::after {
-    display: none;
-  }
+.eco-toggle input:checked + .eco-slider::after {
+  transform: translateX(-20px);
+}
 
-  body.print-eco .footer {
-    background: none;
-  }
+/* Eco mode styles — grayscale + ink-saving combined */
+body.eco-mode .page-frame {
+  filter: grayscale(1);
+}
+
+body.eco-mode {
+  background: white;
+}
+
+body.eco-mode .page-frame {
+  background: white;
+}
+
+body.eco-mode .section {
+  background: white;
+}
+
+body.eco-mode .section-title {
+  background: white;
+  color: #333;
+  border: 2px solid #555;
+}
+
+body.eco-mode .section-subtitle {
+  opacity: 1;
+  color: #666;
+}
+
+body.eco-mode .shabbat-times-box {
+  background: transparent;
+}
+
+body.eco-mode .section-shabbat::after {
+  display: none;
+}
+
+body.eco-mode .footer {
+  background: none;
 }
