@@ -288,6 +288,7 @@ async function loadShabbatData() {
     });
   } finally {
     showLoading(false);
+    attachRowButtons();
     fitPageToA4();
   }
 }
@@ -425,7 +426,23 @@ function createDeleteBtn() {
   return btn;
 }
 
-function addRow(tableEl) {
+function createAddRowBtn() {
+  const btn = document.createElement('button');
+  btn.className = 'row-add-btn no-print';
+  btn.textContent = '+';
+  btn.title = 'הוסף שורה';
+  btn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const tr = this.closest('tr');
+    const table = this.closest('table');
+    if (tr && table) {
+      addRow(table, tr);
+    }
+  });
+  return btn;
+}
+
+function addRow(tableEl, afterRow) {
   const tr = document.createElement('tr');
 
   const labelTd = document.createElement('td');
@@ -436,6 +453,7 @@ function addRow(tableEl) {
   labelSpan.textContent = 'שם התפילה';
   labelTd.appendChild(labelSpan);
   labelTd.appendChild(createDeleteBtn());
+  labelTd.appendChild(createAddRowBtn());
 
   const timeTd = document.createElement('td');
   timeTd.className = 'time-cell';
@@ -447,27 +465,36 @@ function addRow(tableEl) {
 
   tr.appendChild(labelTd);
   tr.appendChild(timeTd);
-  tableEl.appendChild(tr);
+
+  if (afterRow) {
+    afterRow.after(tr);
+  } else {
+    tableEl.appendChild(tr);
+  }
 
   labelSpan.focus();
   fitPageToA4();
 }
 
-function attachDeleteButtons() {
+function attachRowButtons() {
   const editableTables = document.querySelectorAll(
     '.section .times-table, .section-shabbat .times-table',
   );
   editableTables.forEach((table) => {
     table.querySelectorAll('tr').forEach((tr) => {
       const labelCell = tr.querySelector('.label-cell');
-      if (labelCell && !labelCell.querySelector('.row-delete-btn')) {
+      if (!labelCell) return;
+      if (!labelCell.querySelector('.row-delete-btn')) {
         labelCell.appendChild(createDeleteBtn());
+      }
+      if (!labelCell.querySelector('.row-add-btn')) {
+        labelCell.appendChild(createAddRowBtn());
       }
     });
   });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  attachDeleteButtons();
+  attachRowButtons();
   loadShabbatData();
 });
