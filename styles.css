@@ -48,14 +48,19 @@ body {
       #e8e8e8 100%
     );
   width: 100%;
-  min-height: 297mm;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  height: 297mm;
+  overflow: hidden;
   box-shadow:
     0 12px 35px rgba(0, 0, 0, 0.25),
     0 4px 12px rgba(0, 0, 0, 0.12),
     0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.page-frame-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  transform-origin: top center;
 }
 
 .page-frame::before {
@@ -217,6 +222,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  margin-top: 30px;
   margin-bottom: 0;
 }
 
@@ -248,7 +254,7 @@ body {
   letter-spacing: 2px;
   position: absolute;
   top: 20px;
-  right: 30px;
+  right: 20px;
   z-index: 1;
 }
 
@@ -480,6 +486,23 @@ body {
   background: #fff;
 }
 
+.label-editable {
+  display: inline-block;
+  min-width: 60px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: text;
+}
+
+.label-editable:hover {
+  background: #f0f0f0;
+}
+
+.label-editable:focus {
+  outline: 2px solid #666;
+  background: #fff;
+}
+
 .note-text {
   font-size: 20px;
   font-weight: normal;
@@ -538,6 +561,63 @@ body {
   width: 60px;
   text-align: center;
   flex-shrink: 0;
+}
+
+/* Add / Delete row controls */
+.add-row-btn {
+  display: block;
+  margin: 4px auto 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px dashed #999;
+  background: rgba(255, 255, 255, 0.6);
+  color: #666;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+}
+
+.add-row-btn:hover {
+  background: #e8e8e8;
+  border-color: #666;
+  color: #333;
+}
+
+.times-table .label-cell {
+  position: relative;
+}
+
+.row-delete-btn {
+  position: absolute;
+  left: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: transparent;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s;
+  z-index: 2;
+}
+
+.times-table tr:hover .row-delete-btn {
+  color: #c44;
+  border-color: #c44;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.row-delete-btn:hover {
+  background: #c44 !important;
+  color: white !important;
 }
 
 /* Footer */
@@ -623,12 +703,16 @@ body {
 
   .page-frame {
     width: 100%;
-    height: 277mm;
-    max-height: 277mm;
+    height: 297mm;
+    max-height: 297mm;
     padding: 14px 25px;
     overflow: hidden;
     page-break-inside: avoid;
     box-shadow: none;
+  }
+
+  .row-delete-btn {
+    display: none !important;
   }
 
   .page-frame::before {
@@ -640,7 +724,8 @@ body {
     border: 1px solid #ddd;
   }
 
-  .time-value:hover {
+  .time-value:hover,
+  .label-editable:hover {
     background: transparent;
   }
 
@@ -696,16 +781,6 @@ body {
     );
   }
 
-  .section-shabbat::after {
-    background-image: url('assets/shabbat_bg.jpg');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.13;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-
   .section-shabbat .times-table tr:nth-child(odd) {
     background: rgba(0, 0, 0, 0.03);
   }
@@ -715,15 +790,10 @@ body {
   }
 
   .footer {
-    margin: 8px -10px 0;
     padding: 10px 30px 8px;
     box-shadow: none;
   }
 
-  body.eco-mode .page-frame {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
 }
 
 /* Eco toggle switch */
@@ -778,15 +848,12 @@ body {
 }
 
 /* Eco mode styles — grayscale + ink-saving combined */
-body.eco-mode .page-frame {
-  filter: grayscale(1);
-}
-
 body.eco-mode {
   background: white;
 }
 
 body.eco-mode .page-frame {
+  filter: grayscale(1);
   background: white;
 }
 
