@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700&family=Suez+One&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   </head>
   <body>
     <!-- Loading Overlay -->
@@ -21,6 +22,7 @@
     <!-- Toolbar (hidden in print) -->
     <div class="toolbar no-print">
       <button onclick="window.print()">🖨️ הדפסה</button>
+      <button onclick="saveAsJPG()">📷 שמירה כתמונה</button>
       <label class="eco-toggle">
         <span class="eco-label">🌿 חיסכון בדיו</span>
         <input type="checkbox" id="eco-cb" onchange="toggleEcoMode(this.checked)" />
@@ -167,12 +169,18 @@
                 <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
               </td>
             </tr>
+            <tr>
+              <td class="label-cell">וידאו של הרבי</td>
+              <td class="time-cell">
+                <span class="time-value note-text" contenteditable="true">בהמשך לערבית</span>
+              </td>
+            </tr>
           </table>
         </div>
 
         <div class="footer">
           <div class="chabad-name">בית חב״ד המרכזי אור יהודה</div>
-          <div class="address">דוד אלעזר 30, שכונת גיורא, אור יהודה</div>
+          <div class="address">דוד אלעזר 30, שכונת גיורא, אור יהודה · בתוך מקלט ציבורי</div>
           <div class="motto">יחי אדוננו מורנו ורבינו מלך המשיח לעולם ועד</div>
         </div>
         </div>

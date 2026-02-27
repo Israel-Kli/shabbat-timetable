@@ -494,6 +494,33 @@ function attachRowButtons() {
   });
 }
 
+async function saveAsJPG() {
+  const frame = document.querySelector('.page-frame');
+  if (!frame) return;
+
+  const noPrintEls = frame.querySelectorAll('.no-print');
+  noPrintEls.forEach(el => (el.style.display = 'none'));
+
+  try {
+    const canvas = await html2canvas(frame, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff',
+    });
+
+    const link = document.createElement('a');
+    const parasha = document.getElementById('parasha-name')?.textContent || 'shabbat';
+    link.download = `זמני-שבת-${parasha}.jpg`;
+    link.href = canvas.toDataURL('image/jpeg', 0.95);
+    link.click();
+  } catch (err) {
+    console.error('Error saving as JPG:', err);
+    alert('שגיאה בשמירת התמונה');
+  } finally {
+    noPrintEls.forEach(el => (el.style.display = ''));
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   attachRowButtons();
   loadShabbatData();
