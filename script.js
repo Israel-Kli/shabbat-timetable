@@ -508,11 +508,20 @@ async function saveAsJPG() {
       backgroundColor: '#ffffff',
     });
 
-    const link = document.createElement('a');
     const parasha = document.getElementById('parasha-name')?.textContent || 'shabbat';
-    link.download = `זמני-שבת-${parasha}.jpg`;
-    link.href = canvas.toDataURL('image/jpeg', 0.95);
-    link.click();
+    const filename = `זמני-שבת-${parasha}.jpg`;
+
+    canvas.toBlob(blob => {
+      if (!blob) return;
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 'image/jpeg', 0.95);
   } catch (err) {
     console.error('Error saving as JPG:', err);
     alert('שגיאה בשמירת התמונה');
