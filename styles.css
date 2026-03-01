@@ -373,6 +373,15 @@ body {
   print-color-adjust: exact;
 }
 
+/* Export fallback mode to avoid tainted canvas on file:// image assets */
+body.capture-safe-export .logo {
+  visibility: hidden;
+}
+
+body.capture-safe-export .section-shabbat::after {
+  display: none;
+}
+
 .section-shabbat > * {
   position: relative;
   z-index: 1;

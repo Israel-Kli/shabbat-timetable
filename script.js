@@ -8,6 +8,7 @@ const CONFIG = {
 };
 
 let weekOffset = 0;
+let isSavingImage = false;
 
 const HEBREW_MONTHS = {
   Nisan: 'ניסן',
@@ -35,17 +36,6 @@ function formatDateParam(date) {
 
 function extractTime(isoString) {
   const date = new Date(isoString);
-  return date.toLocaleTimeString('he-IL', {
-    timeZone: 'Asia/Jerusalem',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-}
-
-function subtractMinutes(isoString, minutes) {
-  const date = new Date(isoString);
-  date.setMinutes(date.getMinutes() - minutes);
   return date.toLocaleTimeString('he-IL', {
     timeZone: 'Asia/Jerusalem',
     hour: '2-digit',
@@ -90,6 +80,17 @@ function showLoading(show) {
   } else {
     overlay.classList.add('hidden');
   }
+}
+
+function setLoadingText(text) {
+  const spinnerText = document.querySelector('#loading-overlay .spinner-text');
+  if (spinnerText) spinnerText.textContent = text;
+}
+
+function waitForNextPaint() {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => requestAnimationFrame(resolve));
+  });
 }
 
 function showError(message) {
@@ -498,38 +499,92 @@ function attachRowButtons() {
 }
 
 async function saveAsJPG() {
+  if (isSavingImage) return;
+  isSavingImage = true;
+
   const frame = document.querySelector('.page-frame');
-  if (!frame) return;
+  if (!frame) {
+    isSavingImage = false;
+    return;
+  }
 
   const noPrintEls = frame.querySelectorAll('.no-print');
+  const defaultLoadingText = document.querySelector('#loading-overlay .spinner-text')?.textContent || '';
+  const parasha = document.getElementById('parasha-name')?.textContent || 'shabbat';
+  const filename = `זמני-שבת-${parasha}.jpg`;
+  const renderCanvas = () => html2canvas(frame, {
+    scale: 2,
+    useCORS: true,
+    backgroundColor: '#ffffff',
+  });
+  const downloadFromCanvas = async (canvas) => {
+    const blob = await new Promise((resolve, reject) => {
+      try {
+        if (!canvas.toBlob) {
+          resolve(null);
+          return;
+        }
+        canvas.toBlob((generatedBlob) => resolve(generatedBlob), 'image/jpeg', 0.95);
+      } catch (error) {
+        reject(error);
+      }
+    });
+
+    const link = document.createElement('a');
+    link.download = filename;
+    document.body.appendChild(link);
+
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      link.href = url;
+      link.click();
+      URL.revokeObjectURL(url);
+    } else {
+      // Fallback for browsers/devices where canvas.toBlob may return null.
+      link.href = canvas.toDataURL('image/jpeg', 0.95);
+      link.click();
+    }
+
+    document.body.removeChild(link);
+  };
+
+  setLoadingText('שומר תמונה...');
+  showLoading(true);
+  await waitForNextPaint();
+
   noPrintEls.forEach(el => (el.style.display = 'none'));
 
   try {
-    const canvas = await html2canvas(frame, {
-      scale: 2,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-    });
+    try {
+      const canvas = await renderCanvas();
+      await downloadFromCanvas(canvas);
+    } catch (exportError) {
+      const isTaintedError =
+        exportError?.name === 'SecurityError'
+        || exportError?.message?.includes('Tainted canvases may not be exported');
 
-    const parasha = document.getElementById('parasha-name')?.textContent || 'shabbat';
-    const filename = `זמני-שבת-${parasha}.jpg`;
+      if (!isTaintedError) {
+        throw exportError;
+      }
 
-    canvas.toBlob(blob => {
-      if (!blob) return;
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = filename;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    }, 'image/jpeg', 0.95);
+      // Retry without image assets when running from file://, to avoid tainted canvas.
+      document.body.classList.add('capture-safe-export');
+      await waitForNextPaint();
+      try {
+        const safeCanvas = await renderCanvas();
+        await downloadFromCanvas(safeCanvas);
+      } finally {
+        document.body.classList.remove('capture-safe-export');
+      }
+    }
   } catch (err) {
     console.error('Error saving as JPG:', err);
     alert('שגיאה בשמירת התמונה');
   } finally {
     noPrintEls.forEach(el => (el.style.display = ''));
+    setLoadingText(defaultLoadingText);
+    showLoading(false);
+    isSavingImage = false;
   }
 }
 
