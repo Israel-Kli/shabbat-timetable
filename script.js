@@ -203,7 +203,10 @@ async function loadShabbatData() {
     }
 
     // Hebrew date
-    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew);
+    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew).replace(
+      /\sב(?=[א-ת])/u,
+      ' ',
+    );
 
     // Gregorian date
     document.getElementById('gregorian-date').textContent = formatGregorianRange(fridayDateStr, saturdayDateStr);
