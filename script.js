@@ -376,28 +376,42 @@ function changeWeek(delta) {
 }
 
 function measureAndScale(inner, frame, caller) {
+  const footer = frame.querySelector('.footer');
+  const footerHeight = footer ? footer.offsetHeight : 0;
+
   const frameStyle = getComputedStyle(frame);
   const paddingTop = parseFloat(frameStyle.paddingTop);
   const paddingBottom = parseFloat(frameStyle.paddingBottom);
-  const availableHeight = frame.clientHeight - paddingTop - paddingBottom;
-  const contentHeight = inner.scrollHeight;
+  const availableHeight = frame.clientHeight - paddingTop - paddingBottom - footerHeight;
 
-  // #region agent log
-  fetch('http://127.0.0.1:7282/ingest/30998bba-842a-40e8-934b-5e1b144ef3cd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d9f303'},body:JSON.stringify({sessionId:'d9f303',location:'script.js:measureAndScale',message:'dimensions',data:{caller,frameClientHeight:frame.clientHeight,paddingTop,paddingBottom,availableHeight,contentHeight,innerScrollHeight:inner.scrollHeight,innerOffsetHeight:inner.offsetHeight,frameOffsetHeight:frame.offsetHeight,needsScale:contentHeight>availableHeight,scale:contentHeight>availableHeight?availableHeight/contentHeight:1,innerCurrentHeight:inner.style.height,innerCurrentTransform:inner.style.transform},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
+  // Temporarily remove flex constraints and frame clipping to measure natural content height
+  inner.style.flex = 'none';
+  inner.style.height = 'auto';
+  const prevOverflow = frame.style.overflow;
+  frame.style.overflow = 'visible';
+  void inner.offsetHeight;
+  const contentHeight = inner.scrollHeight;
+  frame.style.overflow = prevOverflow;
+
+  console.log('[measureAndScale]', { caller, frameClientHeight: frame.clientHeight, paddingTop, paddingBottom, footerHeight, availableHeight, contentHeight, needsScale: contentHeight > availableHeight });
 
   if (contentHeight > availableHeight) {
     const scale = availableHeight / contentHeight;
-    inner.style.transform = `scale(${scale})`;
+    // Set height to full unscaled content height so layout/overflow doesn't clip
+    // content before transform applies. scale() shrinks it visually to availableHeight.
+    // Pull the footer up by the gap between layout height and visual height.
+    const layoutGap = contentHeight - availableHeight;
+    inner.style.flex = 'none';
     inner.style.height = contentHeight + 'px';
+    inner.style.transform = `scale(${scale})`;
+    if (footer) footer.style.marginTop = `-${layoutGap}px`;
   } else {
+    // Restore flex layout — content fits without scaling
+    inner.style.flex = '';
+    inner.style.height = '';
     inner.style.transform = 'none';
-    inner.style.height = '100%';
+    if (footer) footer.style.marginTop = '';
   }
-
-  // #region agent log
-  fetch('http://127.0.0.1:7282/ingest/30998bba-842a-40e8-934b-5e1b144ef3cd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d9f303'},body:JSON.stringify({sessionId:'d9f303',location:'script.js:measureAndScale:after',message:'applied',data:{caller,transform:inner.style.transform,height:inner.style.height,footerRect:document.querySelector('.footer')?.getBoundingClientRect(),frameRect:frame.getBoundingClientRect()},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
 }
 
 function fitPageToA4() {
@@ -406,7 +420,10 @@ function fitPageToA4() {
   if (!inner || !frame) return;
 
   inner.style.transform = 'none';
-  inner.style.height = 'auto';
+  inner.style.flex = '';
+  inner.style.height = '';
+  const footer = frame.querySelector('.footer');
+  if (footer) footer.style.marginTop = '';
 
   const noPrintEls = inner.querySelectorAll('.no-print');
   noPrintEls.forEach((el) => (el.style.display = 'none'));
@@ -417,56 +434,23 @@ function fitPageToA4() {
   });
 }
 
-function applyPrintStyles(frame, inner) {
-  const saved = [];
-  const set = (el, props) => {
-    const prev = {};
-    for (const [k, v] of Object.entries(props)) { prev[k] = el.style[k]; el.style[k] = v; }
-    saved.push(() => { for (const [k] of Object.entries(props)) el.style[k] = prev[k]; });
-  };
-
-  set(frame, { height: '297mm', maxHeight: '297mm', padding: '14px 25px' });
-  inner.querySelectorAll('.section').forEach(s => set(s, { margin: '4px 28px', padding: '5px 14px' }));
-  inner.querySelectorAll('.section-title').forEach(t => set(t, { padding: '6px 44px', marginBottom: '5px' }));
-  inner.querySelectorAll('.times-table td').forEach(td => set(td, { padding: '5px 12px' }));
-  inner.querySelectorAll('.decorative-line').forEach(d => set(d, { margin: '1px auto' }));
-  const footer = inner.querySelector('.footer');
-  if (footer) set(footer, { padding: '10px 30px 8px' });
-
-  return () => saved.forEach(fn => fn());
-}
-
 function fitPageToA4Print() {
   const inner = document.querySelector('.page-frame-inner');
   const frame = document.querySelector('.page-frame');
   if (!inner || !frame) return;
 
   inner.style.transform = 'none';
-  inner.style.height = 'auto';
+  inner.style.flex = '';
+  inner.style.height = '';
+  const footer = frame.querySelector('.footer');
+  if (footer) footer.style.marginTop = '';
 
   const noPrintEls = inner.querySelectorAll('.no-print');
   noPrintEls.forEach(el => (el.style.display = 'none'));
 
-  const restoreStyles = applyPrintStyles(frame, inner);
   void frame.offsetHeight;
+  measureAndScale(inner, frame, 'fitPageToA4Print');
 
-  const availableHeight = frame.clientHeight - 14 - 14;
-  const contentHeight = inner.scrollHeight;
-
-  // #region agent log
-  fetch('http://127.0.0.1:7282/ingest/30998bba-842a-40e8-934b-5e1b144ef3cd',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'d9f303'},body:JSON.stringify({sessionId:'d9f303',location:'script.js:fitPageToA4Print',message:'print-dimensions-v2',data:{availableHeight,contentHeight,needsScale:contentHeight>availableHeight,scale:contentHeight>availableHeight?availableHeight/contentHeight:1,runId:'post-fix-v2'},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
-  if (contentHeight > availableHeight) {
-    const scale = availableHeight / contentHeight;
-    inner.style.transform = `scale(${scale})`;
-    inner.style.height = contentHeight + 'px';
-  } else {
-    inner.style.transform = 'none';
-    inner.style.height = '100%';
-  }
-
-  restoreStyles();
   noPrintEls.forEach(el => (el.style.display = ''));
 }
 
