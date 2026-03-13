@@ -539,6 +539,15 @@ body.capture-safe-export .section-shabbat::after {
   print-color-adjust: exact;
 }
 
+.molad-roshchodesh {
+  font-family: 'Rubik', 'Heebo', sans-serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a2d4d;
+  text-align: center;
+  padding: 6px 14px 4px;
+}
+
 .shabbat-times-grid {
   display: grid;
   grid-template-columns: auto auto auto;
@@ -771,7 +780,7 @@ body.capture-safe-export .section-shabbat::after {
     box-shadow: none;
   }
 
-  .shabbat-times-box {
+.shabbat-times-box {
     border: 1px solid #ddd;
     box-shadow: none;
   }

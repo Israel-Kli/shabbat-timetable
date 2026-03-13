@@ -133,19 +133,23 @@ async function loadShabbatData() {
 
   try {
     const friday = getTargetFriday();
-    const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}&gy=${friday.getFullYear()}&gm=${friday.getMonth() + 1}&gd=${friday.getDate()}`;
+    const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}&molad=on&gy=${friday.getFullYear()}&gm=${friday.getMonth() + 1}&gd=${friday.getDate()}`;
     const shabbatData = await fetchJSON(shabbatUrl);
 
     let candles = null;
     let havdalah = null;
     let parasha = null;
     let specialShabbat = null;
+    let moladItem = null;
+    let mevarchimItem = null;
 
     for (const item of shabbatData.items) {
       if (item.category === 'candles' && !candles) candles = item;
       if (item.category === 'havdalah' && !havdalah) havdalah = item;
       if (item.category === 'parashat' && !parasha) parasha = item;
       if (item.category === 'holiday' && item.subcat === 'shabbat' && !specialShabbat) specialShabbat = item;
+      if (item.category === 'molad' && !moladItem) moladItem = item;
+      if (item.category === 'mevarchim' && !mevarchimItem) mevarchimItem = item;
     }
 
     if (!candles || !havdalah) {
@@ -155,26 +159,36 @@ async function loadShabbatData() {
     const fridayDateStr = candles.date.substring(0, 10);
     const saturdayDateStr = havdalah.date.substring(0, 10);
 
-    const zmanim = await fetchJSON(
-      `https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${saturdayDateStr}`,
-    );
+    const isMevarchim = !!mevarchimItem;
+
+    // For Mevarchim: fetch Rosh Chodesh dates for the upcoming month
+    let roshChodeshItems = [];
+    if (isMevarchim) {
+      // Rosh Chodesh of the new month falls ~2 weeks after this Shabbat — query that Gregorian month
+      const rcDate = new Date(saturdayDateStr);
+      rcDate.setDate(rcDate.getDate() + 14);
+      const rcYear = rcDate.getFullYear();
+      const rcMonth = rcDate.getMonth() + 1;
+      const rcData = await fetchJSON(
+        `https://www.hebcal.com/hebcal?v=1&cfg=json&nx=on&year=${rcYear}&month=${rcMonth}&i=on`,
+      );
+      roshChodeshItems = (rcData.items || []).filter((it) => it.category === 'roshchodesh');
+      // Edge case: RC could span two Gregorian months; also check the next one
+      if (roshChodeshItems.length === 0) {
+        rcDate.setMonth(rcDate.getMonth() + 1);
+        const rcData2 = await fetchJSON(
+          `https://www.hebcal.com/hebcal?v=1&cfg=json&nx=on&year=${rcDate.getFullYear()}&month=${rcDate.getMonth() + 1}&i=on`,
+        );
+        roshChodeshItems = (rcData2.items || []).filter((it) => it.category === 'roshchodesh');
+      }
+    }
+
+    const [zmanim, hebrewDateData] = await Promise.all([
+      fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${saturdayDateStr}`),
+      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1`),
+    ]);
 
     const sunsetIso = zmanim.times.sunset;
-
-    const hebrewDateData = await fetchJSON(
-      `https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1`,
-    );
-
-    const nextSaturday = new Date(saturdayDateStr);
-    nextSaturday.setDate(nextSaturday.getDate() + 7);
-    const nextSatStr = formatDateParam(nextSaturday);
-
-    const nextHebrewDate = await fetchJSON(
-      `https://www.hebcal.com/converter?cfg=json&date=${nextSatStr}&g2h=1`,
-    );
-
-    const isMevarchim =
-      hebrewDateData.hm !== nextHebrewDate.hm && nextHebrewDate.hm !== 'Tishrei' && hebrewDateData.hd < 30;
 
     // Parasha + special Shabbat name (e.g. תצוה · זכור)
     const parashaEl = document.getElementById('parasha-name');
@@ -196,11 +210,46 @@ async function loadShabbatData() {
     // Mevarchim indicator
     const mevarchimEl = document.getElementById('mevarchim-line');
     if (isMevarchim) {
-      const nextMonthHeb = HEBREW_MONTHS[nextHebrewDate.hm] || nextHebrewDate.hm;
-      mevarchimEl.textContent = `שבת מברכים חודש ${nextMonthHeb}`;
+      mevarchimEl.textContent = mevarchimItem.hebrew || `מברכים חודש`;
       mevarchimEl.style.display = 'block';
     } else {
       mevarchimEl.style.display = 'none';
+    }
+
+    // Molad display (only on Mevarchim)
+    const moladSection = document.getElementById('molad-section');
+    if (isMevarchim && moladItem) {
+      const { dow, hour, minutes, chalakim, hm } = moladItem.molad;
+      const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+      const monthHeb = HEBREW_MONTHS[hm] || hm;
+      document.getElementById('molad-section').querySelector('.section-title').textContent = `המולד חודש ${monthHeb}`;
+      document.getElementById('molad-day').textContent = dayNames[dow];
+      document.getElementById('molad-time').textContent =
+        `${String(hour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+      document.getElementById('molad-chalakim').textContent = chalakim;
+
+      // Rosh Chodesh line
+      const rcEl = document.getElementById('molad-roshchodesh');
+      if (roshChodeshItems.length > 0) {
+        const rcDayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+        const rcDays = roshChodeshItems.map((it) => {
+          const d = new Date(it.date);
+          return rcDayNames[d.getDay()];
+        });
+        // Deduplicate (two items on the same day are possible for 2-day Rosh Chodesh on same day)
+        const uniqueDays = [...new Set(rcDays)];
+        const daysText = uniqueDays.length === 2
+          ? `יום ה${uniqueDays[0]} ויום ה${uniqueDays[1]}`
+          : `יום ה${uniqueDays[0]}`;
+        rcEl.textContent = `ראש חודש ${monthHeb} ב${daysText} הבא עלינו לטובה`;
+        rcEl.style.display = 'block';
+      } else {
+        rcEl.style.display = 'none';
+      }
+
+      moladSection.style.display = 'block';
+    } else {
+      moladSection.style.display = 'none';
     }
 
     // Hebrew date
@@ -263,9 +312,19 @@ async function loadShabbatData() {
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
     }
 
-    // Shabbat Mincha
+    // Shabbat Mincha - 10 minutes before sunset
     const shabbatMinchaEl = document.getElementById('shabbat-mincha');
-    if (shabbatMinchaEl) shabbatMinchaEl.textContent = sunsetTime;
+    if (shabbatMinchaEl && sunsetIso) {
+      const sunsetDate = new Date(sunsetIso);
+      sunsetDate.setMinutes(sunsetDate.getMinutes() - 10);
+      const shabbatMinchaTime = sunsetDate.toLocaleTimeString('he-IL', {
+        timeZone: 'Asia/Jerusalem',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+      shabbatMinchaEl.textContent = shabbatMinchaTime;
+    }
 
     // Arvit Motzei Shabbat
     const motzeiArvitEl = document.getElementById('motzei-arvit');
