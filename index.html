@@ -15,7 +15,7 @@
     <div id="loading-overlay">
       <div class="spinner-container">
         <div class="spinner"></div>
-        <div class="spinner-text">טוען זמני שבת...</div>
+        <div class="spinner-text">טוען זמנים...</div>
       </div>
     </div>
 
@@ -29,9 +29,9 @@
         <span class="eco-slider"></span>
       </label>
       <div class="week-nav">
-        <button class="week-btn" onclick="changeWeek(1)" title="השבת הבאה">קדימה ›</button>
-        <span class="week-label" id="week-label">השבת הקרובה</span>
-        <button class="week-btn" onclick="changeWeek(-1)" title="שבת הקודמת">‹ אחורה</button>
+        <button class="week-btn" onclick="changeEvent(1)" title="האירוע הבא">קדימה ›</button>
+        <span class="week-label" id="week-label">האירוע הקרוב</span>
+        <button class="week-btn" onclick="changeEvent(-1)" title="האירוע הקודם">‹ אחורה</button>
       </div>
     </div>
 
@@ -48,7 +48,7 @@
               class="logo"
             />
             <div class="header-text">
-              <div class="main-title">זמני תפילות לשבת <span class="parasha-value" id="parasha-name">...</span></div>
+              <div class="main-title"><span id="title-fixed">זמני תפילות לשבת </span><span class="parasha-value" id="parasha-name">...</span></div>
               <!-- Mevarchim indicator -->
               <div class="mevarchim-text" id="mevarchim-line" style="display: none"></div>
               <!-- Date line -->
@@ -84,7 +84,7 @@
                 <span class="time-cell"><span class="time-value" id="shema-time" contenteditable="true">...</span></span>
               </div>
               <div class="zman-item">
-                <span class="label-cell">צאת שבת</span>
+                <span class="label-cell" id="havdalah-zman-label">צאת שבת</span>
                 <span class="time-cell"><span class="time-value" id="havdalah-time" contenteditable="true">...</span></span>
               </div>
               <div class="zman-item">
@@ -101,29 +101,16 @@
 
         <!-- Molad Block (shown only on Mevarchim) -->
         <div class="section" id="molad-section" style="display: none;">
-          <div class="section-title">מולד החודש</div>
+          <div class="section-title" id="molad-section-title">מולד החודש</div>
           <div class="shabbat-times-box">
-            <div class="shabbat-times-grid">
-              <div class="zman-item">
-                <span class="label-cell">יום</span>
-                <span class="time-cell"><span class="time-value" id="molad-day">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">שעה</span>
-                <span class="time-cell"><span class="time-value" id="molad-time">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">חלקים</span>
-                <span class="time-cell"><span class="time-value" id="molad-chalakim">...</span></span>
-              </div>
-            </div>
+            <div class="molad-line" id="molad-line"></div>
           </div>
           <div class="molad-roshchodesh" id="molad-roshchodesh"></div>
         </div>
 
-        <!-- Erev Shabbat -->
+        <!-- Erev Shabbat / Erev Chag -->
         <div class="section">
-          <div class="section-title">ערב שבת</div>
+          <div class="section-title" id="section-erev-title">ערב שבת</div>
           <table class="times-table">
             <tr>
               <td class="label-cell">מנחה</td>
@@ -140,9 +127,9 @@
           </table>
         </div>
 
-        <!-- Shabbat Morning & Afternoon -->
+        <!-- Shabbat / Yom Tov Morning & Afternoon -->
         <div class="section section-shabbat">
-          <div class="section-title">שבת</div>
+          <div class="section-title" id="section-day-title">שבת</div>
           <table class="times-table">
             <tr>
               <td class="label-cell" id="chassidut-label">חסידות</td>
@@ -159,13 +146,13 @@
             <tr>
               <td class="label-cell">מסיבות שבת לילדים</td>
               <td class="time-cell">
-                <span class="time-value" contenteditable="true">12:15</span>
+                <span class="time-value" contenteditable="true">12:30</span>
               </td>
             </tr>
             <tr>
               <td class="label-cell">התוועדות חסידית</td>
               <td class="time-cell">
-                <span class="time-value" id="hitvaadut-time" contenteditable="true">12:30</span>
+                <span class="time-value" id="hitvaadut-time" contenteditable="true">12:45</span>
               </td>
             </tr>
           </table>
@@ -186,7 +173,7 @@
               </td>
             </tr>
             <tr>
-              <td class="label-cell">ערבית מוצאי שבת</td>
+              <td class="label-cell" id="motzei-label">ערבית מוצאי שבת</td>
               <td class="time-cell">
                 <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
               </td>

@@ -7,7 +7,9 @@ const CONFIG = {
   chassidutMevarchim: '8:30',
 };
 
-let weekOffset = 0;
+let events = [];
+let eventIndex = 0;
+let defaultEventIndexAtLoad = 0;
 let isSavingImage = false;
 
 const HEBREW_MONTHS = {
@@ -34,6 +36,95 @@ function formatDateParam(date) {
   return `${y}-${m}-${d}`;
 }
 
+function addDaysStr(dateStr, deltaDays) {
+  const d = new Date(`${dateStr}T12:00:00`);
+  d.setDate(d.getDate() + deltaDays);
+  return formatDateParam(d);
+}
+
+function applyShabbatTitles() {
+  const tf = document.getElementById('title-fixed');
+  if (tf) tf.textContent = 'זמני תפילות לשבת ';
+  const erev = document.getElementById('section-erev-title');
+  if (erev) erev.textContent = 'ערב שבת';
+  const day = document.getElementById('section-day-title');
+  if (day) day.textContent = 'שבת';
+  const motzei = document.getElementById('motzei-label');
+  if (motzei) motzei.textContent = 'ערבית מוצאי שבת';
+  const havZman = document.getElementById('havdalah-zman-label');
+  if (havZman) havZman.textContent = 'צאת שבת';
+}
+
+function applyYomTovTitles() {
+  const tf = document.getElementById('title-fixed');
+  if (tf) tf.textContent = 'זמני תפילות ליום טוב · ';
+  const erev = document.getElementById('section-erev-title');
+  if (erev) erev.textContent = 'ערב חג';
+  const day = document.getElementById('section-day-title');
+  if (day) day.textContent = 'יום טוב';
+  const motzei = document.getElementById('motzei-label');
+  if (motzei) motzei.textContent = 'ערבית מוצאי יום טוב';
+  const havZman = document.getElementById('havdalah-zman-label');
+  if (havZman) havZman.textContent = 'סיום יום טוב';
+}
+
+async function buildEventsList() {
+  const start = new Date();
+  start.setDate(start.getDate() - 21);
+  const end = new Date();
+  end.setFullYear(end.getFullYear() + 1);
+  const url = `https://www.hebcal.com/hebcal?v=1&cfg=json&start=${formatDateParam(start)}&end=${formatDateParam(end)}&geonameid=${CONFIG.geonameid}&maj=on&M=on&c=on&b=${CONFIG.candleMinutes}&i=on`;
+  const cal = await fetchJSON(url);
+  const items = cal.items || [];
+
+  const yomtovEvents = [];
+  for (const h of items) {
+    if (h.category !== 'holiday' || h.subcat !== 'major' || !h.yomtov) continue;
+    const dStr = h.date.substring(0, 10);
+    const d = new Date(`${dStr}T12:00:00`);
+    if (d.getDay() === 6) continue;
+    yomtovEvents.push({
+      type: 'yomtov',
+      date: dStr,
+      hebrew: h.hebrew,
+      title: h.title,
+      sortKey: dStr,
+    });
+  }
+
+  const fridays = [];
+  const fd = new Date(start);
+  while (fd.getDay() !== 5) fd.setDate(fd.getDate() + 1);
+  const endCap = new Date(`${formatDateParam(end)}T23:59:59`);
+  while (fd <= endCap) {
+    fridays.push(formatDateParam(fd));
+    fd.setDate(fd.getDate() + 7);
+  }
+  const yomTovDateSet = new Set(yomtovEvents.map((e) => e.date));
+  const shabbatEvents = fridays
+    .filter((friday) => !yomTovDateSet.has(friday))
+    .map((friday) => ({
+      type: 'shabbat',
+      friday,
+      sortKey: friday,
+    }));
+
+  const merged = [...shabbatEvents, ...yomtovEvents];
+  merged.sort((a, b) => a.sortKey.localeCompare(b.sortKey));
+  return merged;
+}
+
+function findDefaultEventIndex(list) {
+  if (!list.length) return 0;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = formatDateParam(today);
+  for (let i = 0; i < list.length; i++) {
+    if (list[i].sortKey >= todayStr) return i;
+  }
+  return list.length - 1;
+}
+
 function extractTime(isoString) {
   const date = new Date(isoString);
   return date.toLocaleTimeString('he-IL', {
@@ -46,6 +137,18 @@ function extractTime(isoString) {
 
 function stripNikkud(str) {
   return str.replace(/[\u0591-\u05C7]/g, '');
+}
+
+function pesachYomTovDisplayName(hebrew, title) {
+  const titleTrim = (title || '').trim();
+  const h = stripNikkud(hebrew || '');
+  if (/^pesach\s+i$/i.test(titleTrim) || h.includes('פסח א')) {
+    return 'ראשון של פסח';
+  }
+  if (/^pesach\s+vii$/i.test(titleTrim) || h.includes('פסח ז')) {
+    return 'שביעי של פסח';
+  }
+  return null;
 }
 
 function formatGregorianRange(fridayIso, saturdayIso) {
@@ -123,16 +226,185 @@ function getTargetFriday() {
   if (day === 6) daysUntilFriday = 6;
   else if (day === 5) daysUntilFriday = 0;
   const friday = new Date(now);
-  friday.setDate(friday.getDate() + daysUntilFriday + weekOffset * 7);
+  friday.setDate(friday.getDate() + daysUntilFriday);
   return friday;
 }
 
-async function loadShabbatData() {
+function pickSaturdayHolidayHebrew(items, saturdayDateStr) {
+  const sat = items.filter(
+    (it) =>
+      it.category === 'holiday'
+      && typeof it.date === 'string'
+      && it.date.substring(0, 10) === saturdayDateStr,
+  );
+  if (sat.length === 0) return null;
+  const order = { shabbat: 0, major: 1, fast: 2, modern: 3 };
+  sat.sort((a, b) => (order[a.subcat] ?? 9) - (order[b.subcat] ?? 9));
+  return sat[0].hebrew || null;
+}
+
+function titleSuffixForHolidayHebrew(holidayHebrew) {
+  if (!holidayHebrew) return holidayHebrew;
+  const pesachName = pesachYomTovDisplayName(holidayHebrew, '');
+  const isCholHamoed =
+    holidayHebrew.includes('חוה״מ') || /\([^)]*חוה/.test(holidayHebrew);
+  if (!isCholHamoed) return pesachName || holidayHebrew;
+  if (holidayHebrew.includes('סוכות')) return 'חול המועד סוכות';
+  if (holidayHebrew.includes('פסח')) return 'חול המועד פסח';
+  return holidayHebrew;
+}
+
+async function loadShabbatEventFallback() {
+  const friday = getTargetFriday();
+  await loadShabbatEvent({
+    type: 'shabbat',
+    friday: formatDateParam(friday),
+    sortKey: formatDateParam(friday),
+  });
+}
+
+async function loadYomTovData(event) {
   showLoading(true);
   hideError();
 
   try {
-    const friday = getTargetFriday();
+    applyYomTovTitles();
+    const holidayDateStr = event.date;
+    const rangeStart = addDaysStr(holidayDateStr, -5);
+    const rangeEnd = addDaysStr(holidayDateStr, 2);
+    const calUrl = `https://www.hebcal.com/hebcal?v=1&cfg=json&start=${rangeStart}&end=${rangeEnd}&geonameid=${CONFIG.geonameid}&maj=on&M=on&c=on&b=${CONFIG.candleMinutes}&i=on`;
+    const cal = await fetchJSON(calUrl);
+    const items = cal.items || [];
+
+    const holidayItem = items.find(
+      (it) =>
+        it.category === 'holiday'
+        && it.date?.substring(0, 10) === holidayDateStr
+        && it.yomtov === true,
+    );
+    if (!holidayItem) throw new Error('Holiday not found');
+
+    const erevStr = addDaysStr(holidayDateStr, -1);
+    let candles = items.find(
+      (it) => it.category === 'candles' && it.date.substring(0, 10) === erevStr,
+    );
+    if (!candles) {
+      candles = items.find(
+        (it) => it.category === 'candles' && it.date.substring(0, 10) === holidayDateStr,
+      );
+    }
+    let yomTovEnd = items.find(
+      (it) => it.category === 'havdalah' && it.date.substring(0, 10) === holidayDateStr,
+    );
+    if (!yomTovEnd) {
+      yomTovEnd = items.find(
+        (it) => it.category === 'candles' && it.date.substring(0, 10) === holidayDateStr,
+      );
+    }
+
+    if (!candles || !yomTovEnd) {
+      throw new Error('Could not find candle lighting or end time for holiday');
+    }
+
+    const erevDateStr = candles.date.substring(0, 10);
+
+    const [zmanimYom, zmanimErev, hebrewDateData] = await Promise.all([
+      fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${holidayDateStr}`),
+      fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${erevDateStr}`),
+      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${holidayDateStr}&g2h=1`),
+    ]);
+
+    const parashaEl = document.getElementById('parasha-name');
+    parashaEl.textContent =
+      pesachYomTovDisplayName(holidayItem.hebrew, holidayItem.title) || stripNikkud(holidayItem.hebrew);
+    adjustParashaFontSize(parashaEl);
+
+    document.getElementById('mevarchim-line').style.display = 'none';
+    document.getElementById('molad-section').style.display = 'none';
+
+    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew).replace(
+      /\sב(?=[א-ת])/u,
+      ' ',
+    );
+
+    document.getElementById('gregorian-date').textContent = formatGregorianRange(erevDateStr, holidayDateStr);
+
+    document.getElementById('candle-time').textContent = extractTime(candles.date);
+    document.getElementById('havdalah-time').textContent = extractTime(yomTovEnd.date);
+
+    const sunsetIso = zmanimYom.times.sunset;
+    document.getElementById('sunset-time').textContent = extractTime(sunsetIso);
+
+    const tzeitIso = zmanimYom.times.tzeit7083deg;
+    if (tzeitIso) document.getElementById('tzeit-time').textContent = extractTime(tzeitIso);
+
+    const shemaIso = zmanimYom.times.sofZmanShma;
+    if (shemaIso) document.getElementById('shema-time').textContent = extractTime(shemaIso);
+
+    const chatzotIso = zmanimYom.times.chatzot;
+    if (chatzotIso) document.getElementById('chatzot-time').textContent = extractTime(chatzotIso);
+
+    const erevSunset = zmanimErev.times.sunset;
+    const fridayMinchaEl = document.getElementById('friday-mincha');
+    if (fridayMinchaEl && erevSunset) fridayMinchaEl.textContent = extractTime(erevSunset);
+
+    const shacharitTimeEl = document.getElementById('shacharit-time');
+    if (shacharitTimeEl) shacharitTimeEl.textContent = CONFIG.shacharitDefault;
+    const shacharitLabelEl = document.getElementById('shacharit-label');
+    if (shacharitLabelEl) shacharitLabelEl.textContent = 'שחרית';
+
+    const chassidutLabelEl = document.getElementById('chassidut-label');
+    const chassidutTimeEl = document.getElementById('chassidut-time');
+    if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות';
+    if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
+
+    const shabbatMinchaEl = document.getElementById('shabbat-mincha');
+    if (shabbatMinchaEl && sunsetIso) {
+      const sunsetDate = new Date(sunsetIso);
+      sunsetDate.setMinutes(sunsetDate.getMinutes() - 10);
+      shabbatMinchaEl.textContent = sunsetDate.toLocaleTimeString('he-IL', {
+        timeZone: 'Asia/Jerusalem',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      });
+    }
+
+    const motzeiArvitEl = document.getElementById('motzei-arvit');
+    if (motzeiArvitEl) motzeiArvitEl.textContent = extractTime(yomTovEnd.date);
+  } catch (error) {
+    console.error('Error loading Yom Tov data:', error);
+    showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    const parashaFallback = document.getElementById('parasha-name');
+    if (parashaFallback) parashaFallback.textContent = '___________';
+    const hebrewFallback = document.getElementById('hebrew-date');
+    if (hebrewFallback) hebrewFallback.textContent = '___ ב___ תשפ״ו';
+    const placeholders = [
+      'candle-time',
+      'havdalah-time',
+      'friday-mincha',
+      'shacharit-time',
+      'shabbat-mincha',
+      'motzei-arvit',
+    ];
+    placeholders.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '__:__';
+    });
+  } finally {
+    showLoading(false);
+    attachRowButtons();
+    fitPageToA4();
+  }
+}
+
+async function loadShabbatEvent(event) {
+  showLoading(true);
+  hideError();
+
+  try {
+    applyShabbatTitles();
+    const friday = new Date(`${event.friday}T12:00:00`);
     const shabbatUrl = `https://www.hebcal.com/shabbat?cfg=json&geonameid=${CONFIG.geonameid}&M=on&b=${CONFIG.candleMinutes}&molad=on&gy=${friday.getFullYear()}&gm=${friday.getMonth() + 1}&gd=${friday.getDate()}`;
     const shabbatData = await fetchJSON(shabbatUrl);
 
@@ -190,7 +462,9 @@ async function loadShabbatData() {
 
     const sunsetIso = zmanim.times.sunset;
 
-    // Parasha + special Shabbat name (e.g. תצוה · זכור)
+    const saturdayHolidayHebrew = pickSaturdayHolidayHebrew(shabbatData.items, saturdayDateStr);
+
+    // Parasha + special Shabbat (e.g. תצוה · זכור). Chol HaMoed from API → חול המועד פסח/סוכות for title flow.
     const parashaEl = document.getElementById('parasha-name');
     if (parasha) {
       const parashaName = parasha.hebrew.replace(/^פרשת\s*/, '');
@@ -202,6 +476,8 @@ async function loadShabbatData() {
       }
     } else if (specialShabbat) {
       parashaEl.textContent = specialShabbat.hebrew;
+    } else if (saturdayHolidayHebrew) {
+      parashaEl.textContent = titleSuffixForHolidayHebrew(saturdayHolidayHebrew);
     } else {
       parashaEl.textContent = '—';
     }
@@ -222,11 +498,13 @@ async function loadShabbatData() {
       const { dow, hour, minutes, chalakim, hm } = moladItem.molad;
       const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
       const monthHeb = HEBREW_MONTHS[hm] || hm;
-      document.getElementById('molad-section').querySelector('.section-title').textContent = `המולד חודש ${monthHeb}`;
-      document.getElementById('molad-day').textContent = dayNames[dow];
-      document.getElementById('molad-time').textContent =
-        `${String(hour).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-      document.getElementById('molad-chalakim').textContent = chalakim;
+      const moladTitleEl = document.getElementById('molad-section-title');
+      if (moladTitleEl) moladTitleEl.textContent = `המולד חודש ${monthHeb}`;
+      const moladLineEl = document.getElementById('molad-line');
+      if (moladLineEl) {
+        moladLineEl.textContent =
+          `המולד יהיה ביום ${dayNames[dow]} בשעה ${hour}, ${minutes} דקות ו- ${chalakim} חלקים`;
+      }
 
       // Rosh Chodesh line
       const rcEl = document.getElementById('molad-roshchodesh');
@@ -356,23 +634,43 @@ async function loadShabbatData() {
   }
 }
 
+async function loadEventData() {
+  if (!events.length) {
+    await loadShabbatEventFallback();
+    updateEventLabel();
+    return;
+  }
+  const ev = events[eventIndex];
+  if (!ev) return;
+  if (ev.type === 'shabbat') await loadShabbatEvent(ev);
+  else await loadYomTovData(ev);
+  updateEventLabel();
+}
+
 function toggleEcoMode(enabled) {
   document.body.classList.toggle('eco-mode', enabled);
 }
 
-function updateWeekLabel() {
+function updateEventLabel() {
   const label = document.getElementById('week-label');
-  if (weekOffset === 0) label.textContent = 'השבת הקרובה';
-  else if (weekOffset === 1) label.textContent = 'בעוד שבוע';
-  else if (weekOffset === -1) label.textContent = 'שבת שעברה';
-  else if (weekOffset > 1) label.textContent = `בעוד ${weekOffset} שבועות`;
-  else label.textContent = `לפני ${Math.abs(weekOffset)} שבועות`;
+  if (!events.length) {
+    label.textContent = 'השבת הקרובה';
+    return;
+  }
+  if (eventIndex === defaultEventIndexAtLoad) {
+    label.textContent = 'האירוע הקרוב';
+  } else if (eventIndex < defaultEventIndexAtLoad) {
+    label.textContent = `לפני ${defaultEventIndexAtLoad - eventIndex} אירועים`;
+  } else {
+    label.textContent = `בעוד ${eventIndex - defaultEventIndexAtLoad} אירועים`;
+  }
 }
 
-function changeWeek(delta) {
-  weekOffset += delta;
-  updateWeekLabel();
-  loadShabbatData();
+function changeEvent(delta) {
+  if (!events.length) return;
+  eventIndex += delta;
+  eventIndex = Math.max(0, Math.min(eventIndex, events.length - 1));
+  loadEventData();
 }
 
 function measureAndScale(inner, frame, caller) {
@@ -553,8 +851,9 @@ async function saveAsJPG() {
 
   const noPrintEls = frame.querySelectorAll('.no-print');
   const defaultLoadingText = document.querySelector('#loading-overlay .spinner-text')?.textContent || '';
-  const parasha = document.getElementById('parasha-name')?.textContent || 'shabbat';
-  const filename = `זמני-שבת-${parasha}.jpg`;
+  const parasha = document.getElementById('parasha-name')?.textContent || 'אירוע';
+  const prefix = document.getElementById('title-fixed')?.textContent?.includes('יום טוב') ? 'זמני-יום-טוב' : 'זמני-שבת';
+  const filename = `${prefix}-${parasha}.jpg`;
   const renderCanvas = () => html2canvas(frame, {
     scale: 2,
     useCORS: true,
@@ -631,7 +930,15 @@ async function saveAsJPG() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   attachRowButtons();
-  loadShabbatData();
+  try {
+    events = await buildEventsList();
+    defaultEventIndexAtLoad = findDefaultEventIndex(events);
+    eventIndex = defaultEventIndexAtLoad;
+  } catch (err) {
+    console.error(err);
+    events = [];
+  }
+  await loadEventData();
 });
