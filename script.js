@@ -5,12 +5,29 @@ const CONFIG = {
   shacharitMevarchim: '10:30',
   chassidutDefault: '9:00',
   chassidutMevarchim: '8:30',
+  yizkorTime: '12:00',
 };
 
 let events = [];
 let eventIndex = 0;
 let defaultEventIndexAtLoad = 0;
 let isSavingImage = false;
+
+function isKiddushLevanaHebrewDay(hd) {
+  return typeof hd === 'number' && hd >= 8 && hd <= 14;
+}
+
+function setKiddushLevanaRowVisible(visible) {
+  const row = document.getElementById('kiddush-levana-row');
+  if (row) row.style.display = visible ? 'table-row' : 'none';
+}
+
+function setYizkorRowVisible(visible, timeText) {
+  const row = document.getElementById('yizkor-row');
+  const timeEl = document.getElementById('yizkor-time');
+  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (visible && timeEl != null && timeText != null) timeEl.textContent = timeText;
+}
 
 const HEBREW_MONTHS = {
   Nisan: 'ניסן',
@@ -76,6 +93,7 @@ async function buildEventsList() {
   const url = `https://www.hebcal.com/hebcal?v=1&cfg=json&start=${formatDateParam(start)}&end=${formatDateParam(end)}&geonameid=${CONFIG.geonameid}&maj=on&M=on&c=on&b=${CONFIG.candleMinutes}&i=on`;
   const cal = await fetchJSON(url);
   const items = cal.items || [];
+  const isIsrael = cal.location ? cal.location.cc === 'IL' : true;
 
   const yomtovEvents = [];
   for (const h of items) {
@@ -89,6 +107,7 @@ async function buildEventsList() {
       hebrew: h.hebrew,
       title: h.title,
       sortKey: dStr,
+      yizkor: isYizkorChabad(h.title, h.hebrew, isIsrael),
     });
   }
 
@@ -151,29 +170,101 @@ function pesachYomTovDisplayName(hebrew, title) {
   return null;
 }
 
+function isYizkorChabad(title, hebrew, isIsrael) {
+  const t = (title || '').trim();
+  if (/^erev\b/i.test(t)) return false;
+  if (/^yom kippur$/i.test(t)) return true;
+  if (/^shmini atzeret$/i.test(t)) return true;
+  const h = stripNikkud(hebrew || '');
+  if (isIsrael) {
+    if (/^pesach vii$/i.test(t) || /פסח\s*ז/.test(h)) return true;
+    if (/^shavuot$/i.test(t) || (h.includes('שבועות') && !h.includes('ערב'))) return true;
+    return false;
+  }
+  if (/^pesach viii$/i.test(t) || /פסח\s*ח/.test(h)) return true;
+  if (/^shavuot ii$/i.test(t) || /^shavuot 2$/i.test(t) || /שבועות\s*ב/.test(h) || /שבועות ב/.test(hebrew || '')) {
+    return true;
+  }
+  return false;
+}
+
+function yizkorSuffixIfNeeded(hasYizkor) {
+  return hasYizkor ? ' · יזכור' : '';
+}
+
+const GREGORIAN_MONTHS_HE = [
+  'ינואר',
+  'פברואר',
+  'מרץ',
+  'אפריל',
+  'מאי',
+  'יוני',
+  'יולי',
+  'אוגוסט',
+  'ספטמבר',
+  'אוקטובר',
+  'נובמבר',
+  'דצמבר',
+];
+
 function formatGregorianRange(fridayIso, saturdayIso) {
   const fri = new Date(fridayIso);
   const sat = new Date(saturdayIso);
-  const months = [
-    'ינואר',
-    'פברואר',
-    'מרץ',
-    'אפריל',
-    'מאי',
-    'יוני',
-    'יולי',
-    'אוגוסט',
-    'ספטמבר',
-    'אוקטובר',
-    'נובמבר',
-    'דצמבר',
-  ];
+  const months = GREGORIAN_MONTHS_HE;
   if (fri.getMonth() === sat.getMonth()) {
     return `${fri.getDate()}-${sat.getDate()} ב${months[fri.getMonth()]} ${fri.getFullYear()}`;
   }
   return `${fri.getDate()} ב${months[fri.getMonth()]} - ${sat.getDate()} ב${
     months[sat.getMonth()]
   } ${fri.getFullYear()}`;
+}
+
+function formatSingleGregorian(dateStr) {
+  const d = new Date(`${dateStr}T12:00:00`);
+  return `${d.getDate()} ב${GREGORIAN_MONTHS_HE[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function getEventOptionLabel(ev) {
+  if (ev.type === 'yomtov') {
+    const name = (ev.hebrew || ev.title || 'יום טוב').replace(/\s+/g, ' ').trim();
+    return `${name}${yizkorSuffixIfNeeded(ev.yizkor)} · ${formatSingleGregorian(ev.date)}`;
+  }
+  const sat = addDaysStr(ev.friday, 1);
+  return `שבת · ${formatGregorianRange(`${ev.friday}T12:00:00`, `${sat}T12:00:00`)}`;
+}
+
+function populateEventSelect() {
+  const sel = document.getElementById('event-select');
+  if (!sel) return;
+  sel.innerHTML = '';
+  if (!events.length) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = 'אין רשימת אירועים';
+    opt.disabled = true;
+    opt.selected = true;
+    sel.appendChild(opt);
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  events.forEach((ev, i) => {
+    const opt = document.createElement('option');
+    opt.value = String(i);
+    opt.textContent = getEventOptionLabel(ev);
+    sel.appendChild(opt);
+  });
+  sel.value = String(Math.min(eventIndex, events.length - 1));
+}
+
+function selectEventFromDropdown() {
+  const sel = document.getElementById('event-select');
+  if (!sel || sel.disabled || !events.length) return;
+  const idx = parseInt(sel.value, 10);
+  if (Number.isNaN(idx) || idx < 0 || idx >= events.length) return;
+  if (idx === eventIndex) return;
+  eventIndex = idx;
+  loadEventData();
 }
 
 function showLoading(show) {
@@ -212,11 +303,24 @@ async function fetchJSON(url) {
   return response.json();
 }
 
-function adjustParashaFontSize(el) {
-  const len = el.textContent.length;
-  if (len <= 7) el.style.fontSize = '1.25em';
-  else if (len <= 14) el.style.fontSize = '1.0em';
-  else el.style.fontSize = '0.85em';
+function adjustMainTitleForContent(parashaEl) {
+  const mainTitle = document.querySelector('.main-title');
+  const titleFixed = document.getElementById('title-fixed');
+  if (!mainTitle || !parashaEl) return;
+
+  const fixed = titleFixed?.textContent ?? '';
+  const parasha = parashaEl.textContent ?? '';
+  const totalLen = fixed.length + parasha.length;
+
+  mainTitle.classList.remove('main-title--tight', 'main-title--compact', 'main-title--mini');
+  if (totalLen > 58) mainTitle.classList.add('main-title--mini');
+  else if (totalLen > 44) mainTitle.classList.add('main-title--compact');
+  else if (totalLen > 32) mainTitle.classList.add('main-title--tight');
+
+  const len = parasha.length;
+  if (len <= 7) parashaEl.style.fontSize = '1.25em';
+  else if (len <= 14) parashaEl.style.fontSize = '1.0em';
+  else parashaEl.style.fontSize = '0.85em';
 }
 
 function getTargetFriday() {
@@ -308,16 +412,22 @@ async function loadYomTovData(event) {
 
     const erevDateStr = candles.date.substring(0, 10);
 
-    const [zmanimYom, zmanimErev, hebrewDateData] = await Promise.all([
+    const dayAfterYomTov = addDaysStr(holidayDateStr, 1);
+    const [zmanimYom, zmanimErev, hebrewDateData, motzeiHebrew] = await Promise.all([
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${holidayDateStr}`),
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${erevDateStr}`),
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${holidayDateStr}&g2h=1`),
+      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${dayAfterYomTov}&g2h=1`),
     ]);
 
+    setKiddushLevanaRowVisible(isKiddushLevanaHebrewDay(motzeiHebrew?.hd));
+
     const parashaEl = document.getElementById('parasha-name');
-    parashaEl.textContent =
+    const isIsrael = cal.location ? cal.location.cc === 'IL' : true;
+    const baseName =
       pesachYomTovDisplayName(holidayItem.hebrew, holidayItem.title) || stripNikkud(holidayItem.hebrew);
-    adjustParashaFontSize(parashaEl);
+    parashaEl.textContent = baseName + yizkorSuffixIfNeeded(isYizkorChabad(holidayItem.title, holidayItem.hebrew, isIsrael));
+    adjustMainTitleForContent(parashaEl);
 
     document.getElementById('mevarchim-line').style.display = 'none';
     document.getElementById('molad-section').style.display = 'none';
@@ -353,6 +463,9 @@ async function loadYomTovData(event) {
     const shacharitLabelEl = document.getElementById('shacharit-label');
     if (shacharitLabelEl) shacharitLabelEl.textContent = 'שחרית';
 
+    const hasYizkor = isYizkorChabad(holidayItem.title, holidayItem.hebrew, isIsrael);
+    setYizkorRowVisible(hasYizkor, CONFIG.yizkorTime);
+
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
     if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות';
@@ -375,8 +488,13 @@ async function loadYomTovData(event) {
   } catch (error) {
     console.error('Error loading Yom Tov data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    setKiddushLevanaRowVisible(false);
+    setYizkorRowVisible(false);
     const parashaFallback = document.getElementById('parasha-name');
-    if (parashaFallback) parashaFallback.textContent = '___________';
+    if (parashaFallback) {
+      parashaFallback.textContent = '___________';
+      adjustMainTitleForContent(parashaFallback);
+    }
     const hebrewFallback = document.getElementById('hebrew-date');
     if (hebrewFallback) hebrewFallback.textContent = '___ ב___ תשפ״ו';
     const placeholders = [
@@ -455,10 +573,14 @@ async function loadShabbatEvent(event) {
       }
     }
 
-    const [zmanim, hebrewDateData] = await Promise.all([
+    const sundayDateStr = addDaysStr(saturdayDateStr, 1);
+    const [zmanim, hebrewDateData, motzeiHebrew] = await Promise.all([
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${saturdayDateStr}`),
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1`),
+      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${sundayDateStr}&g2h=1`),
     ]);
+
+    setKiddushLevanaRowVisible(isKiddushLevanaHebrewDay(motzeiHebrew?.hd));
 
     const sunsetIso = zmanim.times.sunset;
 
@@ -481,7 +603,7 @@ async function loadShabbatEvent(event) {
     } else {
       parashaEl.textContent = '—';
     }
-    adjustParashaFontSize(parashaEl);
+    adjustMainTitleForContent(parashaEl);
 
     // Mevarchim indicator
     const mevarchimEl = document.getElementById('mevarchim-line');
@@ -579,6 +701,8 @@ async function loadShabbatEvent(event) {
       }
     }
 
+    setYizkorRowVisible(false);
+
     // Chassidut / Tehillim on Mevarchim
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
@@ -610,9 +734,14 @@ async function loadShabbatEvent(event) {
   } catch (error) {
     console.error('Error loading Shabbat data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    setKiddushLevanaRowVisible(false);
+    setYizkorRowVisible(false);
 
     const parashaFallback = document.getElementById('parasha-name');
-    if (parashaFallback) parashaFallback.textContent = '___________';
+    if (parashaFallback) {
+      parashaFallback.textContent = '___________';
+      adjustMainTitleForContent(parashaFallback);
+    }
     const hebrewFallback = document.getElementById('hebrew-date');
     if (hebrewFallback) hebrewFallback.textContent = '___ ב___ תשפ״ו';
     const placeholders = [
@@ -637,32 +766,38 @@ async function loadShabbatEvent(event) {
 async function loadEventData() {
   if (!events.length) {
     await loadShabbatEventFallback();
-    updateEventLabel();
+    updateEventNavUI();
     return;
   }
   const ev = events[eventIndex];
   if (!ev) return;
   if (ev.type === 'shabbat') await loadShabbatEvent(ev);
   else await loadYomTovData(ev);
-  updateEventLabel();
+  updateEventNavUI();
 }
 
 function toggleEcoMode(enabled) {
   document.body.classList.toggle('eco-mode', enabled);
 }
 
-function updateEventLabel() {
-  const label = document.getElementById('week-label');
+function updateEventNavUI() {
+  const sel = document.getElementById('event-select');
+  const hint = document.getElementById('event-nav-hint');
+  if (sel && events.length && !sel.disabled) {
+    const v = String(eventIndex);
+    if (sel.value !== v) sel.value = v;
+  }
+  if (!hint) return;
   if (!events.length) {
-    label.textContent = 'השבת הקרובה';
+    hint.textContent = '';
     return;
   }
   if (eventIndex === defaultEventIndexAtLoad) {
-    label.textContent = 'האירוע הקרוב';
+    hint.textContent = 'האירוע הקרוב';
   } else if (eventIndex < defaultEventIndexAtLoad) {
-    label.textContent = `לפני ${defaultEventIndexAtLoad - eventIndex} אירועים`;
+    hint.textContent = `לפני ${defaultEventIndexAtLoad - eventIndex} אירועים`;
   } else {
-    label.textContent = `בעוד ${eventIndex - defaultEventIndexAtLoad} אירועים`;
+    hint.textContent = `בעוד ${eventIndex - defaultEventIndexAtLoad} אירועים`;
   }
 }
 
@@ -940,5 +1075,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error(err);
     events = [];
   }
+  populateEventSelect();
   await loadEventData();
 });

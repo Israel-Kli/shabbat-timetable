@@ -158,9 +158,10 @@ body {
   right: 0;
   background: #f0f0f0;
   border-bottom: 1px solid #ccc;
-  padding: 8px 20px;
+  padding: 8px 20px 20px;
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 10px;
   z-index: 500;
 }
@@ -183,18 +184,55 @@ body {
 .week-nav {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 8px;
   direction: ltr;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
-.week-label {
+.event-picker-wrap {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.event-select {
   font-family: inherit;
   font-size: 14px;
   font-weight: 500;
-  min-width: 110px;
-  text-align: center;
+  width: min(240px, 82vw);
+  height: 28px;
+  box-sizing: border-box;
+  padding: 0 28px 0 10px;
+  border: 1px solid #999;
+  border-radius: 4px;
+  background: white;
+  cursor: pointer;
+  direction: rtl;
+  text-align: right;
+  line-height: 26px;
+}
+
+.event-select:focus {
+  outline: 2px solid #4a90c8;
+  outline-offset: 1px;
+}
+
+.event-nav-hint {
+  position: absolute;
+  top: calc(100% + 3px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: min(240px, 82vw);
+  font-size: 11px;
+  font-weight: 500;
+  color: #555;
   white-space: nowrap;
   direction: rtl;
+  line-height: 1.2;
+  text-align: center;
+  pointer-events: none;
 }
 
 .week-btn {
@@ -269,6 +307,21 @@ body {
   margin: 0;
   letter-spacing: 1px;
   color: #1a2d4d;
+}
+
+.main-title.main-title--tight {
+  font-size: 34px;
+  letter-spacing: 0.5px;
+}
+
+.main-title.main-title--compact {
+  font-size: 28px;
+  letter-spacing: 0;
+}
+
+.main-title.main-title--mini {
+  font-size: 22px;
+  letter-spacing: 0;
 }
 
 .main-title .parasha-value {

@@ -29,9 +29,18 @@
         <span class="eco-slider"></span>
       </label>
       <div class="week-nav">
-        <button class="week-btn" onclick="changeEvent(1)" title="האירוע הבא">קדימה ›</button>
-        <span class="week-label" id="week-label">האירוע הקרוב</span>
-        <button class="week-btn" onclick="changeEvent(-1)" title="האירוע הקודם">‹ אחורה</button>
+        <button type="button" class="week-btn" onclick="changeEvent(1)" title="האירוע הבא">קדימה ›</button>
+        <div class="event-picker-wrap">
+          <select
+            id="event-select"
+            class="event-select"
+            aria-label="בחירת שבת או חג"
+            aria-describedby="event-nav-hint"
+            onchange="selectEventFromDropdown()"
+          ></select>
+          <span id="event-nav-hint" class="event-nav-hint" aria-live="polite"></span>
+        </div>
+        <button type="button" class="week-btn" onclick="changeEvent(-1)" title="האירוע הקודם">‹ אחורה</button>
       </div>
     </div>
 
@@ -143,6 +152,12 @@
                 <span class="time-value" id="shacharit-time" contenteditable="true">...</span>
               </td>
             </tr>
+            <tr id="yizkor-row" style="display: none">
+              <td class="label-cell">יזכור</td>
+              <td class="time-cell">
+                <span class="time-value" id="yizkor-time" contenteditable="true">12:00</span>
+              </td>
+            </tr>
             <tr>
               <td class="label-cell">מסיבות שבת לילדים</td>
               <td class="time-cell">
@@ -178,10 +193,10 @@
                 <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
               </td>
             </tr>
-            <tr>
-              <td class="label-cell">וידאו של הרבי</td>
+            <tr id="kiddush-levana-row" style="display: none">
+              <td class="label-cell">קידוש לבנה, וידאו של הרבי</td>
               <td class="time-cell">
-                <span class="time-value note-text" contenteditable="true">בהמשך לערבית</span>
+                <span class="time-value note-text" id="motzei-video-note" contenteditable="true">בהמשך לערבית</span>
               </td>
             </tr>
           </table>
