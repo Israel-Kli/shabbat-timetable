@@ -29,6 +29,17 @@ function setYizkorRowVisible(visible, timeText) {
   if (visible && timeEl != null && timeText != null) timeEl.textContent = timeText;
 }
 
+function isDuringPesach(hm, hd, isIsrael) {
+  if (hm !== 'Nisan' || typeof hd !== 'number') return false;
+  const lastDay = isIsrael ? 21 : 22;
+  return hd >= 15 && hd <= lastDay;
+}
+
+function setHitvaadutRowVisible(visible) {
+  const row = document.getElementById('hitvaadut-row');
+  if (row) row.style.display = visible ? 'table-row' : 'none';
+}
+
 const HEBREW_MONTHS = {
   Nisan: 'ניסן',
   Iyyar: 'אייר',
@@ -465,6 +476,7 @@ async function loadYomTovData(event) {
 
     const hasYizkor = isYizkorChabad(holidayItem.title, holidayItem.hebrew, isIsrael);
     setYizkorRowVisible(hasYizkor, CONFIG.yizkorTime);
+    setHitvaadutRowVisible(!isDuringPesach(hebrewDateData.hm, hebrewDateData.hd, isIsrael));
 
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
@@ -490,6 +502,7 @@ async function loadYomTovData(event) {
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
     setKiddushLevanaRowVisible(false);
     setYizkorRowVisible(false);
+    setHitvaadutRowVisible(true);
     const parashaFallback = document.getElementById('parasha-name');
     if (parashaFallback) {
       parashaFallback.textContent = '___________';
@@ -545,6 +558,8 @@ async function loadShabbatEvent(event) {
     if (!candles || !havdalah) {
       throw new Error('Could not find candle lighting or havdalah times');
     }
+
+    const isIsrael = shabbatData.location ? shabbatData.location.cc === 'IL' : true;
 
     const fridayDateStr = candles.date.substring(0, 10);
     const saturdayDateStr = havdalah.date.substring(0, 10);
@@ -702,6 +717,7 @@ async function loadShabbatEvent(event) {
     }
 
     setYizkorRowVisible(false);
+    setHitvaadutRowVisible(!isDuringPesach(hebrewDateData.hm, hebrewDateData.hd, isIsrael));
 
     // Chassidut / Tehillim on Mevarchim
     const chassidutLabelEl = document.getElementById('chassidut-label');
@@ -736,6 +752,7 @@ async function loadShabbatEvent(event) {
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
     setKiddushLevanaRowVisible(false);
     setYizkorRowVisible(false);
+    setHitvaadutRowVisible(true);
 
     const parashaFallback = document.getElementById('parasha-name');
     if (parashaFallback) {
