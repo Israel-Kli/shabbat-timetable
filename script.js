@@ -19,7 +19,7 @@ function isKiddushLevanaHebrewDay(hd) {
 
 function setRebbVideoRowVisible(visible) {
   const row = document.getElementById('rebbe-video-row');
-  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (row) row.hidden = !visible;
 }
 
 function setKiddushLevanaRowVisible(visible) {
@@ -30,13 +30,13 @@ function setKiddushLevanaRowVisible(visible) {
 function setYizkorRowVisible(visible, timeText) {
   const row = document.getElementById('yizkor-row');
   const timeEl = document.getElementById('yizkor-time');
-  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (row) row.hidden = !visible;
   if (visible && timeEl != null && timeText != null) timeEl.textContent = timeText;
 }
 
 function setTaaluchaRowVisible(visible) {
   const row = document.getElementById('taalucha-row');
-  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (row) row.hidden = !visible;
 }
 
 function shouldIncludeHolidayInYomTovList(h) {
@@ -54,7 +54,7 @@ function isDuringPesach(hm, hd, isIsrael) {
 
 function setHitvaadutRowVisible(visible) {
   const row = document.getElementById('hitvaadut-row');
-  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (row) row.hidden = !visible;
 }
 
 const NIGGUNIM_LABEL_BASE = 'סדר ניגונים וחזרת דא״ח';
@@ -81,7 +81,7 @@ function applyNiggunimRowForShabbat(pirkeiCal, saturdayDateStr) {
 
 function setShabbatKidsPartyRowVisible(visible) {
   const row = document.getElementById('shabbat-kids-party-row');
-  if (row) row.style.display = visible ? 'table-row' : 'none';
+  if (row) row.hidden = !visible;
 }
 
 const HEBREW_MONTHS = {

@@ -523,7 +523,7 @@ body.capture-safe-export .section-shabbat::after {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
-.times-table tr:nth-child(odd) {
+.times-table tr:nth-child(odd of :not([hidden])) {
   background: rgba(0, 0, 0, 0.03);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
@@ -613,12 +613,13 @@ body.capture-safe-export .section-shabbat::after {
 
 .molad-line {
   font-family: 'Rubik', 'Heebo', sans-serif;
-  font-size: 20px;
+  font-size: 19px;
   font-weight: 700;
   color: #1a2d4d;
   text-align: center;
-  line-height: 1.45;
-  padding: 10px 14px 8px;
+  padding: 6px 14px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .molad-roshchodesh {
@@ -875,11 +876,16 @@ body.capture-safe-export .section-shabbat::after {
     box-shadow: none;
   }
 
-  .times-table tr:nth-child(odd) {
+  .times-table tr:nth-child(odd of :not([hidden])) {
     background: #f5f5f5;
   }
 
   .zman-item:nth-child(-n+3) {
+    border-bottom: 1px solid #ddd;
+    box-shadow: none;
+  }
+
+  .molad-line {
     border-bottom: 1px solid #ddd;
     box-shadow: none;
   }
@@ -893,7 +899,7 @@ body.capture-safe-export .section-shabbat::after {
     );
   }
 
-  .section-shabbat .times-table tr:nth-child(odd) {
+  .section-shabbat .times-table tr:nth-child(odd of :not([hidden])) {
     background: rgba(0, 0, 0, 0.03);
   }
 
