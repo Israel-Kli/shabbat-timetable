@@ -651,16 +651,16 @@ body.capture-safe-export .section-shabbat::after {
 /* Add / Delete row controls */
 .row-add-btn {
   position: absolute;
-  left: 26px;
+  left: 38px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1px solid transparent;
   background: transparent;
   color: transparent;
-  font-size: 16px;
+  font-size: 22px;
   line-height: 1;
   cursor: pointer;
   padding: 0;
@@ -688,13 +688,13 @@ body.capture-safe-export .section-shabbat::after {
   left: 2px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 22px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   border: 1px solid transparent;
   background: transparent;
   color: transparent;
-  font-size: 14px;
+  font-size: 20px;
   line-height: 1;
   cursor: pointer;
   padding: 0;

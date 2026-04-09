@@ -17,9 +17,14 @@ function isKiddushLevanaHebrewDay(hd) {
   return typeof hd === 'number' && hd >= 8 && hd <= 14;
 }
 
-function setKiddushLevanaRowVisible(visible) {
-  const row = document.getElementById('kiddush-levana-row');
+function setRebbVideoRowVisible(visible) {
+  const row = document.getElementById('rebbe-video-row');
   if (row) row.style.display = visible ? 'table-row' : 'none';
+}
+
+function setKiddushLevanaRowVisible(visible) {
+  const label = document.getElementById('rebbe-video-label');
+  if (label) label.textContent = visible ? 'קידוש לבנה, וידאו של הרבי' : 'וידאו של הרבי';
 }
 
 function setYizkorRowVisible(visible, timeText) {
@@ -27,6 +32,18 @@ function setYizkorRowVisible(visible, timeText) {
   const timeEl = document.getElementById('yizkor-time');
   if (row) row.style.display = visible ? 'table-row' : 'none';
   if (visible && timeEl != null && timeText != null) timeEl.textContent = timeText;
+}
+
+function setTaaluchaRowVisible(visible) {
+  const row = document.getElementById('taalucha-row');
+  if (row) row.style.display = visible ? 'table-row' : 'none';
+}
+
+function shouldIncludeHolidayInYomTovList(h) {
+  if (h.category !== 'holiday' || h.subcat !== 'major') return false;
+  if (h.yomtov) return true;
+  const t = (h.title || '').trim();
+  return /^sukkot\s*vii/i.test(t);
 }
 
 function isDuringPesach(hm, hd, isIsrael) {
@@ -37,6 +54,11 @@ function isDuringPesach(hm, hd, isIsrael) {
 
 function setHitvaadutRowVisible(visible) {
   const row = document.getElementById('hitvaadut-row');
+  if (row) row.style.display = visible ? 'table-row' : 'none';
+}
+
+function setShabbatKidsPartyRowVisible(visible) {
+  const row = document.getElementById('shabbat-kids-party-row');
   if (row) row.style.display = visible ? 'table-row' : 'none';
 }
 
@@ -81,11 +103,16 @@ function applyShabbatTitles() {
   if (motzei) motzei.textContent = 'ערבית מוצאי שבת';
   const havZman = document.getElementById('havdalah-zman-label');
   if (havZman) havZman.textContent = 'צאת שבת';
+  const erevEvening = document.getElementById('erev-evening-label');
+  if (erevEvening) erevEvening.textContent = 'קבלת שבת וערבית';
+  const erevArvit = document.getElementById('friday-arvit');
+  if (erevArvit) erevArvit.textContent = 'בהמשך למנחה';
+  setShabbatKidsPartyRowVisible(true);
 }
 
 function applyYomTovTitles() {
   const tf = document.getElementById('title-fixed');
-  if (tf) tf.textContent = 'זמני תפילות ליום טוב · ';
+  if (tf) tf.textContent = 'זמני תפילות ל';
   const erev = document.getElementById('section-erev-title');
   if (erev) erev.textContent = 'ערב חג';
   const day = document.getElementById('section-day-title');
@@ -93,7 +120,25 @@ function applyYomTovTitles() {
   const motzei = document.getElementById('motzei-label');
   if (motzei) motzei.textContent = 'ערבית מוצאי יום טוב';
   const havZman = document.getElementById('havdalah-zman-label');
-  if (havZman) havZman.textContent = 'סיום יום טוב';
+  if (havZman) havZman.textContent = 'צאת החג';
+  const erevEvening = document.getElementById('erev-evening-label');
+  if (erevEvening) erevEvening.textContent = 'ערבית של יום טוב';
+  setShabbatKidsPartyRowVisible(false);
+}
+
+function setErevEveningLabelForYomTov(erevDateStr) {
+  const el = document.getElementById('erev-evening-label');
+  if (!el || !erevDateStr) return;
+  const erev = new Date(`${erevDateStr}T12:00:00`);
+  el.textContent = erev.getDay() === 5 ? 'קבלת שבת וערבית' : 'ערבית של יום טוב';
+}
+
+function setErevArvitNoteForYomTov(erevDateStr, hasTaalucha) {
+  const el = document.getElementById('friday-arvit');
+  if (!el || !erevDateStr) return;
+  const erev = new Date(`${erevDateStr}T12:00:00`);
+  const joinsShabbat = erev.getDay() === 5;
+  el.textContent = !joinsShabbat && hasTaalucha ? 'בהמשך לתהלוכה' : 'בהמשך למנחה';
 }
 
 async function buildEventsList() {
@@ -108,7 +153,7 @@ async function buildEventsList() {
 
   const yomtovEvents = [];
   for (const h of items) {
-    if (h.category !== 'holiday' || h.subcat !== 'major' || !h.yomtov) continue;
+    if (!shouldIncludeHolidayInYomTovList(h)) continue;
     const dStr = h.date.substring(0, 10);
     const d = new Date(`${dStr}T12:00:00`);
     if (d.getDay() === 6) continue;
@@ -119,6 +164,7 @@ async function buildEventsList() {
       title: h.title,
       sortKey: dStr,
       yizkor: isYizkorChabad(h.title, h.hebrew, isIsrael),
+      taalucha: isTaaluchaChabad(h.title, h.hebrew, isIsrael),
     });
   }
 
@@ -199,8 +245,27 @@ function isYizkorChabad(title, hebrew, isIsrael) {
   return false;
 }
 
+function isTaaluchaChabad(title, hebrew, isIsrael) {
+  const t = (title || '').trim();
+  if (/^erev\b/i.test(t)) return false;
+  const h = stripNikkud(hebrew || '');
+  if (/^sukkot\s*vii/i.test(t) || /hoshana/i.test(t)) return true;
+  if (isIsrael) {
+    if (/^pesach vii$/i.test(t) || /פסח\s*ז/.test(h)) return true;
+    if (/^shavuot$/i.test(t)) return true;
+    return false;
+  }
+  if (/^pesach viii$/i.test(t) || /פסח\s*ח/.test(h)) return true;
+  if (/^shavuot i$/i.test(t) || /^shavuot ii$/i.test(t)) return true;
+  return false;
+}
+
 function yizkorSuffixIfNeeded(hasYizkor) {
   return hasYizkor ? ' · יזכור' : '';
+}
+
+function taaluchaSuffixIfNeeded(hasTaalucha) {
+  return hasTaalucha ? ' · תהלוכה' : '';
 }
 
 const GREGORIAN_MONTHS_HE = [
@@ -238,7 +303,7 @@ function formatSingleGregorian(dateStr) {
 function getEventOptionLabel(ev) {
   if (ev.type === 'yomtov') {
     const name = (ev.hebrew || ev.title || 'יום טוב').replace(/\s+/g, ' ').trim();
-    return `${name}${yizkorSuffixIfNeeded(ev.yizkor)} · ${formatSingleGregorian(ev.date)}`;
+    return `${name}${yizkorSuffixIfNeeded(ev.yizkor)}${taaluchaSuffixIfNeeded(ev.taalucha)} · ${formatSingleGregorian(ev.date)}`;
   }
   const sat = addDaysStr(ev.friday, 1);
   return `שבת · ${formatGregorianRange(`${ev.friday}T12:00:00`, `${sat}T12:00:00`)}`;
@@ -395,7 +460,7 @@ async function loadYomTovData(event) {
       (it) =>
         it.category === 'holiday'
         && it.date?.substring(0, 10) === holidayDateStr
-        && it.yomtov === true,
+        && shouldIncludeHolidayInYomTovList(it),
     );
     if (!holidayItem) throw new Error('Holiday not found');
 
@@ -422,6 +487,7 @@ async function loadYomTovData(event) {
     }
 
     const erevDateStr = candles.date.substring(0, 10);
+    setErevEveningLabelForYomTov(erevDateStr);
 
     const dayAfterYomTov = addDaysStr(holidayDateStr, 1);
     const [zmanimYom, zmanimErev, hebrewDateData, motzeiHebrew] = await Promise.all([
@@ -431,13 +497,14 @@ async function loadYomTovData(event) {
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${dayAfterYomTov}&g2h=1`),
     ]);
 
-    setKiddushLevanaRowVisible(isKiddushLevanaHebrewDay(motzeiHebrew?.hd));
+    setRebbVideoRowVisible(false);
+    setKiddushLevanaRowVisible(false);
 
     const parashaEl = document.getElementById('parasha-name');
     const isIsrael = cal.location ? cal.location.cc === 'IL' : true;
     const baseName =
       pesachYomTovDisplayName(holidayItem.hebrew, holidayItem.title) || stripNikkud(holidayItem.hebrew);
-    parashaEl.textContent = baseName + yizkorSuffixIfNeeded(isYizkorChabad(holidayItem.title, holidayItem.hebrew, isIsrael));
+    parashaEl.textContent = baseName;
     adjustMainTitleForContent(parashaEl);
 
     document.getElementById('mevarchim-line').style.display = 'none';
@@ -475,7 +542,10 @@ async function loadYomTovData(event) {
     if (shacharitLabelEl) shacharitLabelEl.textContent = 'שחרית';
 
     const hasYizkor = isYizkorChabad(holidayItem.title, holidayItem.hebrew, isIsrael);
+    const hasTaalucha = isTaaluchaChabad(holidayItem.title, holidayItem.hebrew, isIsrael);
     setYizkorRowVisible(hasYizkor, CONFIG.yizkorTime);
+    setTaaluchaRowVisible(hasTaalucha);
+    setErevArvitNoteForYomTov(erevDateStr, hasTaalucha);
     setHitvaadutRowVisible(!isDuringPesach(hebrewDateData.hm, hebrewDateData.hd, isIsrael));
 
     const chassidutLabelEl = document.getElementById('chassidut-label');
@@ -500,9 +570,13 @@ async function loadYomTovData(event) {
   } catch (error) {
     console.error('Error loading Yom Tov data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    setRebbVideoRowVisible(false);
     setKiddushLevanaRowVisible(false);
     setYizkorRowVisible(false);
+    setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
+    const erevArvitFallback = document.getElementById('friday-arvit');
+    if (erevArvitFallback) erevArvitFallback.textContent = 'בהמשך למנחה';
     const parashaFallback = document.getElementById('parasha-name');
     if (parashaFallback) {
       parashaFallback.textContent = '___________';
@@ -595,6 +669,7 @@ async function loadShabbatEvent(event) {
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${sundayDateStr}&g2h=1`),
     ]);
 
+    setRebbVideoRowVisible(true);
     setKiddushLevanaRowVisible(isKiddushLevanaHebrewDay(motzeiHebrew?.hd));
 
     const sunsetIso = zmanim.times.sunset;
@@ -717,6 +792,7 @@ async function loadShabbatEvent(event) {
     }
 
     setYizkorRowVisible(false);
+    setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(!isDuringPesach(hebrewDateData.hm, hebrewDateData.hd, isIsrael));
 
     // Chassidut / Tehillim on Mevarchim
@@ -750,8 +826,10 @@ async function loadShabbatEvent(event) {
   } catch (error) {
     console.error('Error loading Shabbat data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    setRebbVideoRowVisible(false);
     setKiddushLevanaRowVisible(false);
     setYizkorRowVisible(false);
+    setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
 
     const parashaFallback = document.getElementById('parasha-name');
@@ -1004,7 +1082,7 @@ async function saveAsJPG() {
   const noPrintEls = frame.querySelectorAll('.no-print');
   const defaultLoadingText = document.querySelector('#loading-overlay .spinner-text')?.textContent || '';
   const parasha = document.getElementById('parasha-name')?.textContent || 'אירוע';
-  const prefix = document.getElementById('title-fixed')?.textContent?.includes('יום טוב') ? 'זמני-יום-טוב' : 'זמני-שבת';
+  const prefix = document.getElementById('title-fixed')?.textContent?.includes('לשבת') ? 'זמני-שבת' : 'זמני-יום-טוב';
   const filename = `${prefix}-${parasha}.jpg`;
   const renderCanvas = () => html2canvas(frame, {
     scale: 2,
