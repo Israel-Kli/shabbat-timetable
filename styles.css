@@ -271,7 +271,7 @@ body {
 .header-content {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-evenly;
   gap: 14px;
   width: 100%;
 }
@@ -495,11 +495,27 @@ body.capture-safe-export .section-shabbat::after {
 
 /* Times tables */
 .times-table {
-  width: 90%;
-  max-width: 600px;
+  width: 100%;
+  max-width: 750px;
   margin: 0 auto;
   border-collapse: separate;
   border-spacing: 0;
+}
+
+.times-table tr:first-child td:first-child {
+  border-top-left-radius: 8px;
+}
+
+.times-table tr:first-child td:last-child {
+  border-top-right-radius: 8px;
+}
+
+.times-table tr:last-child td:first-child {
+  border-bottom-left-radius: 8px;
+}
+
+.times-table tr:last-child td:last-child {
+  border-bottom-right-radius: 8px;
 }
 
 .times-table tr {
@@ -524,12 +540,12 @@ body.capture-safe-export .section-shabbat::after {
 }
 
 .times-table .label-cell {
-  width: 65%;
+  width: 71%;
 }
 
 .times-table .time-cell {
   text-align: center;
-  width: 35%;
+  width: 29%;
 }
 
 .time-value {

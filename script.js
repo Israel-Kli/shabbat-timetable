@@ -57,6 +57,28 @@ function setHitvaadutRowVisible(visible) {
   if (row) row.style.display = visible ? 'table-row' : 'none';
 }
 
+const NIGGUNIM_LABEL_BASE = 'סדר ניגונים וחזרת דא״ח';
+
+function resetNiggunimRow() {
+  const labelEl = document.getElementById('niggunim-label');
+  if (labelEl) labelEl.textContent = NIGGUNIM_LABEL_BASE;
+  const noteEl = document.getElementById('niggunim-note');
+  if (noteEl) noteEl.textContent = 'בהמשך למנחה';
+}
+
+function applyNiggunimRowForShabbat(pirkeiCal, saturdayDateStr) {
+  const noteEl = document.getElementById('niggunim-note');
+  if (noteEl) noteEl.textContent = 'בהמשך למנחה';
+  const labelEl = document.getElementById('niggunim-label');
+  const items = pirkeiCal?.items || [];
+  const item = items.find(
+    (it) => it.category === 'pirkeiAvotSummer' && it.date?.substring(0, 10) === saturdayDateStr,
+  );
+  if (labelEl) {
+    labelEl.textContent = item?.hebrew ? `${item.hebrew} · ${NIGGUNIM_LABEL_BASE}` : NIGGUNIM_LABEL_BASE;
+  }
+}
+
 function setShabbatKidsPartyRowVisible(visible) {
   const row = document.getElementById('shabbat-kids-party-row');
   if (row) row.style.display = visible ? 'table-row' : 'none';
@@ -78,6 +100,32 @@ const HEBREW_MONTHS = {
   'Adar I': 'אדר א׳',
   'Adar II': 'אדר ב׳',
 };
+
+const MOLAD_DOW_FULL = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+const MOLAD_DOW_LETTER = ['א׳', 'ב׳', 'ג׳', 'ד׳', 'ה׳', 'ו׳', 'ז׳'];
+
+function formatMoladDayHebrew(dow) {
+  return `${MOLAD_DOW_LETTER[dow]} (${MOLAD_DOW_FULL[dow]})`;
+}
+
+function formatMoladTimeHebrew(hour, minutes, chalakim) {
+  const tail = `, ${minutes} דקות ו-${chalakim} חלקים`;
+  let mid;
+  if (hour >= 5 && hour <= 11) {
+    mid = `שעה ${hour} בבוקר`;
+  } else if (hour === 12) {
+    mid = `שעה 12 בצהריים`;
+  } else if (hour >= 13 && hour <= 16) {
+    mid = `שעה ${hour - 12} אחר הצהריים`;
+  } else if (hour >= 17 && hour <= 23) {
+    mid = `שעה ${hour - 12} בערב`;
+  } else if (hour === 0) {
+    mid = `חצות הלילה`;
+  } else {
+    mid = `שעה ${hour} בלילה`;
+  }
+  return `ב${mid}${tail}`;
+}
 
 function formatDateParam(date) {
   const y = date.getFullYear();
@@ -556,7 +604,7 @@ async function loadYomTovData(event) {
     const shabbatMinchaEl = document.getElementById('shabbat-mincha');
     if (shabbatMinchaEl && sunsetIso) {
       const sunsetDate = new Date(sunsetIso);
-      sunsetDate.setMinutes(sunsetDate.getMinutes() - 10);
+      sunsetDate.setMinutes(sunsetDate.getMinutes() - 20);
       shabbatMinchaEl.textContent = sunsetDate.toLocaleTimeString('he-IL', {
         timeZone: 'Asia/Jerusalem',
         hour: '2-digit',
@@ -567,6 +615,8 @@ async function loadYomTovData(event) {
 
     const motzeiArvitEl = document.getElementById('motzei-arvit');
     if (motzeiArvitEl) motzeiArvitEl.textContent = extractTime(yomTovEnd.date);
+
+    resetNiggunimRow();
   } catch (error) {
     console.error('Error loading Yom Tov data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
@@ -575,6 +625,7 @@ async function loadYomTovData(event) {
     setYizkorRowVisible(false);
     setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
+    resetNiggunimRow();
     const erevArvitFallback = document.getElementById('friday-arvit');
     if (erevArvitFallback) erevArvitFallback.textContent = 'בהמשך למנחה';
     const parashaFallback = document.getElementById('parasha-name');
@@ -663,10 +714,12 @@ async function loadShabbatEvent(event) {
     }
 
     const sundayDateStr = addDaysStr(saturdayDateStr, 1);
-    const [zmanim, hebrewDateData, motzeiHebrew] = await Promise.all([
+    const pirkeiAvotUrl = `https://www.hebcal.com/hebcal?v=1&cfg=json&dpa=on&start=${saturdayDateStr}&end=${saturdayDateStr}&i=on`;
+    const [zmanim, hebrewDateData, motzeiHebrew, pirkeiAvotCal] = await Promise.all([
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${saturdayDateStr}`),
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${saturdayDateStr}&g2h=1`),
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${sundayDateStr}&g2h=1`),
+      fetchJSON(pirkeiAvotUrl).catch(() => ({ items: [] })),
     ]);
 
     setRebbVideoRowVisible(true);
@@ -708,14 +761,16 @@ async function loadShabbatEvent(event) {
     const moladSection = document.getElementById('molad-section');
     if (isMevarchim && moladItem) {
       const { dow, hour, minutes, chalakim, hm } = moladItem.molad;
-      const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
       const monthHeb = HEBREW_MONTHS[hm] || hm;
       const moladTitleEl = document.getElementById('molad-section-title');
       if (moladTitleEl) moladTitleEl.textContent = `המולד חודש ${monthHeb}`;
       const moladLineEl = document.getElementById('molad-line');
       if (moladLineEl) {
-        moladLineEl.textContent =
-          `המולד יהיה ביום ${dayNames[dow]} בשעה ${hour}, ${minutes} דקות ו- ${chalakim} חלקים`;
+        moladLineEl.textContent = `המולד יהיה ביום ${formatMoladDayHebrew(dow)} ${formatMoladTimeHebrew(
+          hour,
+          minutes,
+          chalakim,
+        )}`;
       }
 
       // Rosh Chodesh line
@@ -728,10 +783,13 @@ async function loadShabbatEvent(event) {
         });
         // Deduplicate (two items on the same day are possible for 2-day Rosh Chodesh on same day)
         const uniqueDays = [...new Set(rcDays)];
-        const daysText = uniqueDays.length === 2
-          ? `יום ה${uniqueDays[0]} ויום ה${uniqueDays[1]}`
-          : `יום ה${uniqueDays[0]}`;
-        rcEl.textContent = `ראש חודש ${monthHeb} ב${daysText} הבא עלינו לטובה`;
+        const rcDayPhrase = (dayName) =>
+          dayName === 'שבת' ? 'ביום השבת קודש' : `ביום ה${dayName}`;
+        const daysText =
+          uniqueDays.length === 2
+            ? `${rcDayPhrase(uniqueDays[0])} ו${rcDayPhrase(uniqueDays[1])}`
+            : rcDayPhrase(uniqueDays[0]);
+        rcEl.textContent = `ראש חודש ${monthHeb} ${daysText} הבא עלינו לטובה`;
         rcEl.style.display = 'block';
       } else {
         rcEl.style.display = 'none';
@@ -806,11 +864,11 @@ async function loadShabbatEvent(event) {
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
     }
 
-    // Shabbat Mincha - 10 minutes before sunset
+    // Shabbat Mincha - 20 minutes before sunset
     const shabbatMinchaEl = document.getElementById('shabbat-mincha');
     if (shabbatMinchaEl && sunsetIso) {
       const sunsetDate = new Date(sunsetIso);
-      sunsetDate.setMinutes(sunsetDate.getMinutes() - 10);
+      sunsetDate.setMinutes(sunsetDate.getMinutes() - 20);
       const shabbatMinchaTime = sunsetDate.toLocaleTimeString('he-IL', {
         timeZone: 'Asia/Jerusalem',
         hour: '2-digit',
@@ -819,6 +877,8 @@ async function loadShabbatEvent(event) {
       });
       shabbatMinchaEl.textContent = shabbatMinchaTime;
     }
+
+    applyNiggunimRowForShabbat(pirkeiAvotCal, saturdayDateStr);
 
     // Arvit Motzei Shabbat
     const motzeiArvitEl = document.getElementById('motzei-arvit');
@@ -831,6 +891,7 @@ async function loadShabbatEvent(event) {
     setYizkorRowVisible(false);
     setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
+    resetNiggunimRow();
 
     const parashaFallback = document.getElementById('parasha-name');
     if (parashaFallback) {
