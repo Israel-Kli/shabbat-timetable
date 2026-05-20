@@ -23,11 +23,12 @@
     <div class="toolbar no-print">
       <button onclick="window.print()">🖨️ הדפסה</button>
       <button onclick="saveAsJPG()">📷 שמירה כתמונה</button>
-      <label class="eco-toggle">
-        <span class="eco-label">🌿 חיסכון בדיו</span>
-        <input type="checkbox" id="eco-cb" onchange="toggleEcoMode(this.checked)" />
-        <span class="eco-slider"></span>
-      </label>
+      <div class="mode-switcher" role="group" aria-label="מצב תצוגה">
+        <span class="mode-switcher-label">מצב תצוגה:</span>
+        <button type="button" class="mode-btn" id="mode-btn-eco"     onclick="setDisplayMode('eco')"     title="חיסכון מרבי בדיו — גווני אפור ללא עיצוב">🌿 חיסכון</button>
+        <button type="button" class="mode-btn" id="mode-btn-gray"    onclick="setDisplayMode('gray')"    title="גווני אפור עם עיצוב מלא ומרקמים">🖤 אפור עשיר</button>
+        <button type="button" class="mode-btn active" id="mode-btn-color"   onclick="setDisplayMode('color')"   title="תצוגה צבעונית מלאה">🎨 צבעוני</button>
+      </div>
       <div class="week-nav">
         <button type="button" class="week-btn" onclick="changeEvent(1)" title="האירוע הבא">קדימה ›</button>
         <div class="event-picker-wrap">
@@ -74,162 +75,393 @@
         <!-- Error message -->
         <div class="error-msg" id="error-msg"></div>
 
-        <!-- Zmanim Block -->
-        <div class="section">
-          <div class="section-title">זמני היום <span class="section-subtitle">לפי אופק אור יהודה</span></div>
-          <div class="shabbat-times-box">
-            <div class="shabbat-times-grid">
-              <div class="zman-item">
-                <span class="label-cell">הדלקת נרות</span>
-                <span class="time-cell"><span class="time-value" id="candle-time" contenteditable="true">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">שקיעה</span>
-                <span class="time-cell"><span class="time-value" id="sunset-time" contenteditable="true">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">סוף זמן קריאת שמע</span>
-                <span class="time-cell"><span class="time-value" id="shema-time" contenteditable="true">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell" id="havdalah-zman-label">צאת שבת</span>
-                <span class="time-cell"><span class="time-value" id="havdalah-time" contenteditable="true">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">צאת הכוכבים</span>
-                <span class="time-cell"><span class="time-value" id="tzeit-time" contenteditable="true">...</span></span>
-              </div>
-              <div class="zman-item">
-                <span class="label-cell">חצות</span>
-                <span class="time-cell"><span class="time-value" id="chatzot-time" contenteditable="true">...</span></span>
+        <!-- ═══════════════════════════════════════════════════
+             SINGLE-DAY LAYOUT (regular Shabbat / Yom Tov)
+             hidden when data-layout="yomtov-shabbat"
+             ═══════════════════════════════════════════════════ -->
+        <div id="layout-single">
+
+          <!-- Zmanim Block -->
+          <div class="section">
+            <div class="section-title">זמני היום <span class="section-subtitle">לפי אופק אור יהודה</span></div>
+            <div class="shabbat-times-box">
+              <div class="shabbat-times-grid">
+                <div class="zman-item">
+                  <span class="label-cell">הדלקת נרות</span>
+                  <span class="time-cell"><span class="time-value" id="candle-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">שקיעה</span>
+                  <span class="time-cell"><span class="time-value" id="sunset-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">סוף זמן קריאת שמע</span>
+                  <span class="time-cell"><span class="time-value" id="shema-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell" id="havdalah-zman-label">צאת שבת</span>
+                  <span class="time-cell"><span class="time-value" id="havdalah-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">צאת הכוכבים</span>
+                  <span class="time-cell"><span class="time-value" id="tzeit-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">חצות</span>
+                  <span class="time-cell"><span class="time-value" id="chatzot-time" contenteditable="true">...</span></span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Molad Block (shown only on Mevarchim) -->
-        <div class="section" id="molad-section" style="display: none;">
-          <div class="section-title" id="molad-section-title">מולד החודש</div>
-          <div class="shabbat-times-box">
-            <div class="molad-line" id="molad-line"></div>
-            <div class="molad-roshchodesh" id="molad-roshchodesh"></div>
+          <!-- Molad Block (shown only on Mevarchim) -->
+          <div class="section" id="molad-section" style="display: none;">
+            <div class="section-title" id="molad-section-title">מולד החודש</div>
+            <div class="shabbat-times-box">
+              <div class="molad-line" id="molad-line"></div>
+              <div class="molad-roshchodesh" id="molad-roshchodesh"></div>
+            </div>
           </div>
-        </div>
 
-        <!-- Erev Shabbat / Erev Chag -->
-        <div class="section">
-          <div class="section-title" id="section-erev-title">ערב שבת</div>
-          <table class="times-table">
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">מנחה</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="friday-mincha" contenteditable="true">...</span>
-              </td>
-            </tr>
-            <tr id="taalucha-row" hidden>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">תהלוכה</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value note-text" contenteditable="true">בהמשך למנחה</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true" id="erev-evening-label">קבלת שבת וערבית</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value note-text" id="friday-arvit" contenteditable="true">בהמשך למנחה</span>
-              </td>
-            </tr>
-          </table>
-        </div>
+          <!-- Erev Shabbat / Erev Chag -->
+          <div class="section">
+            <div class="section-title" id="section-erev-title">ערב שבת</div>
+            <table class="times-table">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מנחה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="friday-mincha" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr id="taalucha-row" hidden>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">תהלוכה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" contenteditable="true">בהמשך למנחה</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="erev-evening-label">קבלת שבת וערבית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" id="friday-arvit" contenteditable="true">בהמשך למנחה</span>
+                </td>
+              </tr>
+            </table>
+          </div>
 
-        <!-- Shabbat / Yom Tov Morning & Afternoon -->
-        <div class="section section-shabbat">
-          <div class="section-title" id="section-day-title">שבת</div>
-          <table class="times-table">
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true" id="chassidut-label">חסידות</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="chassidut-time" contenteditable="true">9:00</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true" id="shacharit-label">שחרית</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="shacharit-time" contenteditable="true">...</span>
-              </td>
-            </tr>
-            <tr id="yizkor-row" hidden>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">יזכור</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="yizkor-time" contenteditable="true">12:00</span>
-              </td>
-            </tr>
-            <tr id="shabbat-kids-party-row">
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">מסיבות שבת לילדים</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" contenteditable="true">12:30</span>
-              </td>
-            </tr>
-            <tr id="hitvaadut-row">
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">התוועדות חסידית</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="hitvaadut-time" contenteditable="true">12:45</span>
-              </td>
-            </tr>
-          </table>
+          <!-- Shabbat / Yom Tov Morning & Afternoon -->
+          <div class="section section-shabbat">
+            <div class="section-title" id="section-day-title">שבת</div>
+            <table class="times-table">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="chassidut-label">חסידות</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="chassidut-time" contenteditable="true">9:00</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="shacharit-label">שחרית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="shacharit-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr id="yizkor-row" hidden>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">יזכור</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="yizkor-time" contenteditable="true">12:00</span>
+                </td>
+              </tr>
+              <tr id="shabbat-kids-party-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מסיבות שבת לילדים</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" contenteditable="true">12:30</span>
+                </td>
+              </tr>
+              <tr id="hitvaadut-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">התוועדות חסידית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="hitvaadut-time" contenteditable="true">12:45</span>
+                </td>
+              </tr>
+            </table>
 
-          <div class="decorative-line"></div>
+            <div class="decorative-line"></div>
 
-          <table class="times-table">
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true">מנחה</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="shabbat-mincha" contenteditable="true">...</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" id="niggunim-label" contenteditable="true">סדר ניגונים וחזרת דא״ח</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value note-text" id="niggunim-note" contenteditable="true">בהמשך למנחה</span>
-              </td>
-            </tr>
-            <tr>
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true" id="motzei-label">ערבית מוצאי שבת</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
-              </td>
-            </tr>
-            <tr id="rebbe-video-row">
-              <td class="label-cell">
-                <span class="label-editable" contenteditable="true" id="rebbe-video-label">וידאו של הרבי</span>
-              </td>
-              <td class="time-cell">
-                <span class="time-value note-text" id="motzei-video-note" contenteditable="true">בהמשך לערבית</span>
-              </td>
-            </tr>
-          </table>
-        </div>
+            <table class="times-table">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מנחה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="shabbat-mincha" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" id="niggunim-label" contenteditable="true">סדר ניגונים וחזרת דא״ח</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" id="niggunim-note" contenteditable="true">בהמשך למנחה</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="motzei-label">ערבית מוצאי שבת</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="motzei-arvit" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr id="rebbe-video-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="rebbe-video-label">וידאו של הרבי</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" id="motzei-video-note" contenteditable="true">בהמשך לערבית</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+        </div><!-- /#layout-single -->
+
+        <!-- ═══════════════════════════════════════════════════
+             MULTI-DAY LAYOUT (Yom Tov leading into Shabbat)
+             shown when data-layout="yomtov-shabbat"
+             ═══════════════════════════════════════════════════ -->
+        <div id="layout-yomtov-shabbat" style="display:none;">
+
+          <!-- Zmanim Block (shared) -->
+          <div class="section section-compact">
+            <div class="section-title">זמני היום <span class="section-subtitle">לפי אופק אור יהודה</span></div>
+            <div class="shabbat-times-box">
+              <div class="shabbat-times-grid">
+                <div class="zman-item">
+                  <span class="label-cell">הדלקת נרות</span>
+                  <span class="time-cell"><span class="time-value" id="md-candle-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">שקיעה (שישי)</span>
+                  <span class="time-cell"><span class="time-value" id="md-sunset-yom1" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">סוף זמן קריאת שמע</span>
+                  <span class="time-cell"><span class="time-value" id="md-shema-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">צאת שבת / חג</span>
+                  <span class="time-cell"><span class="time-value" id="md-havdalah-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">צאת הכוכבים</span>
+                  <span class="time-cell"><span class="time-value" id="md-tzeit-time" contenteditable="true">...</span></span>
+                </div>
+                <div class="zman-item">
+                  <span class="label-cell">חצות</span>
+                  <span class="time-cell"><span class="time-value" id="md-chatzot-time" contenteditable="true">...</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Night before Yom Tov (Thursday night → Friday) -->
+          <div class="section section-compact">
+            <div class="section-title" id="md-leil-title">ערב חג</div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מנחה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-leil-mincha" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr id="md-taalucha-row" hidden>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">תהלוכה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-taalucha-time" contenteditable="true">19:50</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">ערבית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" id="md-leil-arvit-note" contenteditable="true">בהמשך לתהלוכה</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-tikkun-label">תיקון ליל שבועות</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-tikkun-time" contenteditable="true">22:30</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Yom Tov Day 1 (Friday) -->
+          <div class="section section-compact section-shabbat">
+            <div class="section-title" id="md-yom1-title">יום שישי · חג השבועות</div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-chassidut-yom1-label">חסידות</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-chassidut-yom1" contenteditable="true">9:00</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">שחרית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-shacharit-yom1" contenteditable="true">10:00</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-torah-reading-label">קריאת התורה עם עשרת הדברות</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-torah-time" contenteditable="true">11:30</span>
+                </td>
+              </tr>
+              <tr id="md-yizkor-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">יזכור</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-yizkor-time" contenteditable="true">12:00</span>
+                </td>
+              </tr>
+              <tr id="md-hitvaadut-yom1-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">התוועדות חסידית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" contenteditable="true">12:45</span>
+                </td>
+              </tr>
+            </table>
+            <div class="decorative-line"></div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">קריאת עשרת הדברות לילדים</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" contenteditable="true">17:00</span>
+                </td>
+              </tr>
+            </table>
+            <div class="decorative-line"></div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מנחה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-mincha-yom1" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">קבלת שבת וערבית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-kabbalat-shabbat-time" contenteditable="true">...</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+          <!-- Shabbat (Saturday) -->
+          <div class="section section-compact section-shabbat">
+            <div class="section-title">שבת קודש</div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-chassidut-shabbat-label">חסידות</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-chassidut-shabbat" contenteditable="true">9:00</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">שחרית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-shacharit-shabbat" contenteditable="true">10:00</span>
+                </td>
+              </tr>
+              <tr id="md-hitvaadut-shabbat-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">התוועדות חסידית</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" contenteditable="true">12:45</span>
+                </td>
+              </tr>
+            </table>
+            <div class="decorative-line"></div>
+            <table class="times-table times-table-compact">
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מנחה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-mincha-shabbat" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-niggunim-label">פרקי אבות · סדר ניגונים</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" contenteditable="true">בהמשך למנחה</span>
+                </td>
+              </tr>
+              <tr>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">ערבית מוצאי שבת</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="md-motzei-arvit" contenteditable="true">...</span>
+                </td>
+              </tr>
+              <tr id="md-rebbe-video-row">
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true" id="md-rebbe-video-label">וידאו של הרבי</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" contenteditable="true">בהמשך לערבית</span>
+                </td>
+              </tr>
+            </table>
+          </div>
+
+        </div><!-- /#layout-yomtov-shabbat -->
 
         </div>
         <div class="footer">

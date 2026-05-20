@@ -28,26 +28,35 @@ body {
   padding: 14px 25px;
   position: relative;
   background:
+    /* Fibrous paper: three diagonal hatches at different angles/spacings */
     repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.008) 2px,
-      rgba(0, 0, 0, 0.008) 4px
+      17deg,
+      transparent 0px,
+      transparent 5px,
+      rgba(0, 0, 0, 0.009) 5px,
+      rgba(0, 0, 0, 0.009) 6px
     ),
     repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 2px,
-      rgba(0, 0, 0, 0.008) 2px,
-      rgba(0, 0, 0, 0.008) 4px
+      77deg,
+      transparent 0px,
+      transparent 9px,
+      rgba(0, 0, 0, 0.006) 9px,
+      rgba(0, 0, 0, 0.006) 10px
     ),
+    repeating-linear-gradient(
+      143deg,
+      transparent 0px,
+      transparent 13px,
+      rgba(0, 0, 0, 0.005) 13px,
+      rgba(0, 0, 0, 0.005) 14px
+    ),
+    /* warm paper base */
     linear-gradient(
       170deg,
-      #f5f5f5 0%,
-      #efefef 30%,
-      #eaeaea 60%,
-      #e8e8e8 100%
+      #f7f5f2 0%,
+      #f1ede9 30%,
+      #ebe6e1 60%,
+      #e8e3de 100%
     );
   width: 100%;
   height: 297mm;
@@ -384,12 +393,28 @@ body {
   margin: 4px 28px;
   width: auto;
   padding: 5px 14px;
-  background: linear-gradient(
-    160deg,
-    rgba(255, 255, 255, 0.92) 0%,
-    rgba(250, 250, 250, 0.88) 50%,
-    rgba(245, 245, 245, 0.85) 100%
-  );
+  background:
+    /* faint cross-fiber so the card is subtly textured, not glassy-flat */
+    repeating-linear-gradient(
+      22deg,
+      transparent 0px,
+      transparent 7px,
+      rgba(0, 0, 0, 0.007) 7px,
+      rgba(0, 0, 0, 0.007) 8px
+    ),
+    repeating-linear-gradient(
+      112deg,
+      transparent 0px,
+      transparent 11px,
+      rgba(0, 0, 0, 0.005) 11px,
+      rgba(0, 0, 0, 0.005) 12px
+    ),
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.93) 0%,
+      rgba(251, 251, 251, 0.89) 50%,
+      rgba(246, 246, 246, 0.86) 100%
+    );
   border-radius: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.8);
   border-left: 1px solid rgba(255, 255, 255, 0.5);
@@ -406,37 +431,15 @@ body {
   print-color-adjust: exact;
 }
 
-/* Shabbat section with background image */
+/* Shabbat section */
 .section-shabbat {
   position: relative;
   overflow: hidden;
 }
 
-.section-shabbat::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('assets/shabbat_bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  opacity: 0.13;
-  z-index: 0;
-  border-radius: 12px;
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-}
-
 /* Export fallback mode to avoid tainted canvas on file:// image assets */
 body.capture-safe-export .logo {
   visibility: hidden;
-}
-
-body.capture-safe-export .section-shabbat::after {
-  display: none;
 }
 
 .section-shabbat > * {
@@ -527,6 +530,19 @@ body.capture-safe-export .section-shabbat::after {
   background: rgba(0, 0, 0, 0.03);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
+}
+
+/* Compact tables are split across multiple <table> elements by decorative-line
+   dividers. JS adds .stripe-even-start to continuation tables whose first
+   visible row should be even (shaded) to continue the sequence from the
+   previous table. */
+.times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {
+  background: rgba(0, 0, 0, 0.03);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+.times-table-compact.stripe-even-start tr:nth-child(odd of :not([hidden])) {
+  background: transparent;
 }
 
 .times-table tr:last-child {
@@ -880,6 +896,13 @@ body.capture-safe-export .section-shabbat::after {
     background: #f5f5f5;
   }
 
+  .times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {
+    background: #f5f5f5;
+  }
+  .times-table-compact.stripe-even-start tr:nth-child(odd of :not([hidden])) {
+    background: transparent;
+  }
+
   .zman-item:nth-child(-n+3) {
     border-bottom: 1px solid #ddd;
     box-shadow: none;
@@ -890,115 +913,265 @@ body.capture-safe-export .section-shabbat::after {
     box-shadow: none;
   }
 
-  .section-shabbat {
-    background: linear-gradient(
-      160deg,
-      #fcfcfc 0%,
-      #f9f9f9 50%,
-      #f5f5f5 100%
-    );
-  }
-
-  .section-shabbat .times-table tr:nth-child(odd of :not([hidden])) {
-    background: rgba(0, 0, 0, 0.03);
-  }
-
-  .section-shabbat .times-table tr {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
   .footer {
     box-shadow: none;
   }
 
 }
 
-/* Eco toggle switch */
-.eco-toggle {
-  font-family: inherit;
-  font-size: 15px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  direction: rtl;
-  user-select: none;
+/* ─── Multi-day layout (Yom Tov into Shabbat) ─────────────────────────────── */
+
+/* Compact section: tighter margins and padding */
+.section.section-compact {
+  margin: 3px 28px;
+  padding: 3px 14px;
 }
 
-.eco-label {
+/* Compact table: smaller row padding and font sizes */
+.times-table.times-table-compact td {
+  padding: 2px 12px;
+}
+
+.times-table.times-table-compact .label-cell {
+  font-size: 22px;
+}
+
+.times-table.times-table-compact .time-cell {
+  font-size: 22px;
+}
+
+.times-table.times-table-compact .note-text {
+  font-size: 17px;
+}
+
+/* Section title for compact sections is slightly smaller */
+.section-compact .section-title {
+  font-size: 22px;
+  padding: 4px 24px;
+  margin-bottom: 3px;
+}
+
+/* Decorative line inside compact sections */
+.section-compact .decorative-line {
+  margin: 1px auto;
+}
+
+/* Eco mode: compact section title */
+body.eco-mode .section-compact .section-title {
+  font-size: 22px;
+}
+
+/* ─── End Multi-day layout ─────────────────────────────────────────────────── */
+
+/* ─── Mode switcher (toolbar) ─────────────────────────────────────────────── */
+.mode-switcher {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  direction: rtl;
+}
+
+.mode-switcher-label {
+  font-family: inherit;
+  font-size: 14px;
+  color: #555;
   white-space: nowrap;
 }
 
-.eco-toggle input {
-  display: none;
-}
-
-.eco-slider {
-  position: relative;
-  width: 42px;
-  height: 22px;
-  background: #ccc;
-  border-radius: 11px;
-  transition: background 0.25s;
-  flex-shrink: 0;
-}
-
-.eco-slider::after {
-  content: '';
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 18px;
-  height: 18px;
+.mode-btn {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 4px 12px;
+  border: 1px solid #aaa;
+  border-radius: 4px;
   background: white;
-  border-radius: 50%;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
 }
 
-.eco-toggle input:checked + .eco-slider {
-  background: #4caf50;
+.mode-btn:hover {
+  background: #e8e8e8;
 }
 
-.eco-toggle input:checked + .eco-slider::after {
-  transform: translateX(-20px);
+.mode-btn.active {
+  background: #1a2d4d;
+  color: white;
+  border-color: #1a2d4d;
 }
 
-/* Eco mode styles — grayscale + ink-saving combined */
-body.eco-mode {
+/* ─── Mode: Colorful Enrich (default — body has no extra class, or mode-color) */
+
+/* No overrides needed — base styles are the full colorful look */
+
+/* ─── Mode: Greyscale Eco ─────────────────────────────────────────────────── */
+
+body.mode-eco {
   background: white;
 }
 
-body.eco-mode .page-frame {
+body.mode-eco .page-frame {
   filter: grayscale(1);
   background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-body.eco-mode .section {
+/* Inner border for Eco: light grey, no heavy box-shadows */
+body.mode-eco .page-frame::before {
+  border-color: #ccc #bbb #aaa #bbb;
+  box-shadow: none;
+}
+
+body.mode-eco .page-frame::after {
+  border-color: rgba(0, 0, 0, 0.08);
+}
+
+body.mode-eco .section {
   background: white;
+  border: 1px solid #ccc;
+  box-shadow: none;
 }
 
-body.eco-mode .section-title {
+body.mode-eco .section-title {
   background: white;
   color: #333;
   border: 2px solid #555;
+  border-bottom: 2px solid #555;
   text-shadow: none;
   box-shadow: none;
 }
 
-body.eco-mode .section-subtitle {
+body.mode-eco .section-subtitle {
   opacity: 1;
   color: #666;
 }
 
-body.eco-mode .shabbat-times-box {
+body.mode-eco .shabbat-times-box {
   background: transparent;
+  box-shadow: none;
 }
 
-body.eco-mode .section-shabbat::after {
-  display: none;
-}
-
-body.eco-mode .footer {
+body.mode-eco .footer {
   background: none;
 }
+
+body.mode-eco .decorative-line {
+  background: #888;
+  box-shadow: none;
+}
+
+body.mode-eco .section-compact .section-title {
+  font-size: 22px;
+}
+
+/* ─── Mode: Greyscale Enrich ──────────────────────────────────────────────── */
+
+body.mode-gray .page-frame {
+  filter: grayscale(1);
+  /*
+   * Organic paper-fiber texture:
+   * Three diagonal hatches at different angles + spacings create a natural
+   * woven feel without a mechanical grid. Contrast is higher than colorful
+   * mode so the texture remains clearly visible after grayscale conversion.
+   */
+  background:
+    repeating-linear-gradient(
+      19deg,
+      transparent 0px,
+      transparent 4px,
+      rgba(0, 0, 0, 0.028) 4px,
+      rgba(0, 0, 0, 0.028) 5px
+    ),
+    repeating-linear-gradient(
+      79deg,
+      transparent 0px,
+      transparent 7px,
+      rgba(0, 0, 0, 0.020) 7px,
+      rgba(0, 0, 0, 0.020) 8px
+    ),
+    repeating-linear-gradient(
+      139deg,
+      transparent 0px,
+      transparent 11px,
+      rgba(0, 0, 0, 0.014) 11px,
+      rgba(0, 0, 0, 0.014) 12px
+    ),
+    linear-gradient(170deg, #f0ede9 0%, #e6e2de 40%, #dfdbd7 70%, #dbd7d2 100%);
+}
+
+/*
+ * Section cards: single soft diagonal grain (not a crosshatch) so they read
+ * clearly as raised panels, not as a pattern-on-pattern mess.
+ */
+body.mode-gray .section {
+  background:
+    repeating-linear-gradient(
+      28deg,
+      transparent 0px,
+      transparent 8px,
+      rgba(0, 0, 0, 0.022) 8px,
+      rgba(0, 0, 0, 0.022) 9px
+    ),
+    repeating-linear-gradient(
+      118deg,
+      transparent 0px,
+      transparent 14px,
+      rgba(0, 0, 0, 0.013) 14px,
+      rgba(0, 0, 0, 0.013) 15px
+    ),
+    linear-gradient(
+      160deg,
+      rgba(255, 255, 255, 0.96) 0%,
+      rgba(250, 249, 248) 50%,
+      rgba(242, 240, 238) 100%
+    );
+}
+
+/*
+ * Section title badge: smooth gradient highlight instead of stripe overlay.
+ * A polished-dark-stone look — bright specular at top, deep shadow at base.
+ */
+body.mode-gray .section-title {
+  background:
+    /* top specular */
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(255,255,255,0.18) 0%, transparent 100%),
+    /* base gradient */
+    linear-gradient(180deg, #686868 0%, #464646 22%, #333333 52%, #262626 100%);
+  color: white;
+  border-color: rgba(150, 150, 150, 0.45);
+  border-bottom: 3px solid #838383;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 0 8px rgba(255, 255, 255, 0.05);
+}
+
+/* Shabbat times inset box: faint single-axis grain */
+body.mode-gray .shabbat-times-box {
+  background:
+    repeating-linear-gradient(
+      19deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(0, 0, 0, 0.018) 6px,
+      rgba(0, 0, 0, 0.018) 7px
+    ),
+    rgba(0, 0, 0, 0.032);
+}
+
+/* Decorative line: richer dark-to-mid-grey gradient */
+body.mode-gray .decorative-line {
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    #888 10%,
+    #555 40%,
+    #3a3a3a 50%,
+    #555 60%,
+    #888 90%,
+    transparent 100%
+  );
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.25), 0 -1px 0 rgba(0, 0, 0, 0.1);
+}
+
+body.mode-gray .section-compact .section-title {
+  font-size: 22px;
+}
+
