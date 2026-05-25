@@ -61,6 +61,7 @@ body {
   width: 100%;
   height: 297mm;
   overflow: hidden;
+  border-radius: 6px;
   box-shadow:
     0 12px 35px rgba(0, 0, 0, 0.25),
     0 4px 12px rgba(0, 0, 0, 0.12),
@@ -522,12 +523,12 @@ body.capture-safe-export .logo {
 }
 
 .times-table tr {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.16);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
 .times-table tr:nth-child(odd of :not([hidden])) {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.065);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -537,7 +538,7 @@ body.capture-safe-export .logo {
    visible row should be even (shaded) to continue the sequence from the
    previous table. */
 .times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.065);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
@@ -888,16 +889,16 @@ body.capture-safe-export .logo {
   }
 
   .times-table tr {
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #ccc;
     box-shadow: none;
   }
 
   .times-table tr:nth-child(odd of :not([hidden])) {
-    background: #f5f5f5;
+    background: #e8e8e8;
   }
 
   .times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {
-    background: #f5f5f5;
+    background: #e8e8e8;
   }
   .times-table-compact.stripe-even-start tr:nth-child(odd of :not([hidden])) {
     background: transparent;
@@ -1026,6 +1027,10 @@ body.mode-eco .page-frame::after {
   border-color: rgba(0, 0, 0, 0.08);
 }
 
+body.mode-eco .page-frame {
+  border-radius: 0;
+}
+
 body.mode-eco .section {
   background: white;
   border: 1px solid #ccc;
@@ -1068,35 +1073,71 @@ body.mode-eco .section-compact .section-title {
 
 body.mode-gray .page-frame {
   filter: grayscale(1);
-  /*
-   * Organic paper-fiber texture:
-   * Three diagonal hatches at different angles + spacings create a natural
-   * woven feel without a mechanical grid. Contrast is higher than colorful
-   * mode so the texture remains clearly visible after grayscale conversion.
-   */
+  border-radius: 10px;
+  background: linear-gradient(170deg, #fbf9f6 0%, #f5f1ed 40%, #efeae5 70%, #ebe6e0 100%);
+}
+
+/*
+ * Enriched inner frame: deeper bevel with a brushed-metal feel.
+ * Top/left catch the light, bottom/right fall into shadow,
+ * inner shadows add depth + a subtle vignette inside the border.
+ *
+ * Texture lives HERE (not on .page-frame) so it is naturally bounded by the
+ * inner frame's 20px inset and 12px border-radius — the outer margin between
+ * the page edge and the frame stays clean.
+ */
+body.mode-gray .page-frame::before {
+  border-top: 3px solid #d4d4d4;
+  border-left: 3px solid #c4c4c4;
+  border-right: 3px solid #5a5a5a;
+  border-bottom: 3px solid #484848;
+  border-radius: 12px;
   background:
+    /* fine primary hatch — 1px lines, close spacing for a paper-grain feel */
     repeating-linear-gradient(
-      19deg,
+      23deg,
       transparent 0px,
       transparent 4px,
-      rgba(0, 0, 0, 0.028) 4px,
-      rgba(0, 0, 0, 0.028) 5px
+      rgba(0, 0, 0, 0.045) 4px,
+      rgba(0, 0, 0, 0.045) 5px
     ),
+    /* counter-hatch breaks the line direction without becoming a grid */
     repeating-linear-gradient(
-      79deg,
+      113deg,
       transparent 0px,
-      transparent 7px,
-      rgba(0, 0, 0, 0.020) 7px,
-      rgba(0, 0, 0, 0.020) 8px
+      transparent 5px,
+      rgba(0, 0, 0, 0.035) 5px,
+      rgba(0, 0, 0, 0.035) 6px
     ),
+    /* widely-spaced soft accent — adds organic variation, not pattern */
     repeating-linear-gradient(
-      139deg,
+      67deg,
       transparent 0px,
-      transparent 11px,
-      rgba(0, 0, 0, 0.014) 11px,
-      rgba(0, 0, 0, 0.014) 12px
-    ),
-    linear-gradient(170deg, #f0ede9 0%, #e6e2de 40%, #dfdbd7 70%, #dbd7d2 100%);
+      transparent 17px,
+      rgba(0, 0, 0, 0.020) 17px,
+      rgba(0, 0, 0, 0.020) 18px
+    );
+  background-clip: padding-box;
+  box-shadow:
+    inset 0 2px 1px rgba(255, 255, 255, 0.55),
+    inset 0 -2px 1px rgba(0, 0, 0, 0.22),
+    inset 2px 0 1px rgba(255, 255, 255, 0.30),
+    inset -2px 0 1px rgba(0, 0, 0, 0.18),
+    inset 0 0 30px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 0 12px rgba(0, 0, 0, 0.10);
+}
+
+/*
+ * Inner accent line: a second hairline border just inside the bevel
+ * creates a classic "framed certificate" feel.
+ */
+body.mode-gray .page-frame::after {
+  border: 1px solid rgba(0, 0, 0, 0.22);
+  border-radius: 8px;
+  box-shadow:
+    inset 0 0 0 2px rgba(255, 255, 255, 0.45),
+    inset 0 0 0 3px rgba(0, 0, 0, 0.06);
 }
 
 /*
