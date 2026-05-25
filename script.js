@@ -3,7 +3,7 @@ const CONFIG = {
   candleMinutes: 20,
   shacharitDefault: '10:00',
   shacharitMevarchim: '10:30',
-  chassidutDefault: '9:30',
+  chassidutDefault: '9:00',
   chassidutMevarchim: '8:30',
   yizkorTime: '12:00',
 };
@@ -641,7 +641,7 @@ async function loadYomTovData(event) {
 
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
-    if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות';
+    if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם מורנו הרב טאלער';
     if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
 
     const shabbatMinchaEl = document.getElementById('shabbat-mincha');
@@ -904,7 +904,7 @@ async function loadShabbatEvent(event) {
       if (chassidutLabelEl) chassidutLabelEl.textContent = 'אמירת תהילים בציבור';
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutMevarchim;
     } else {
-      if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות';
+      if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם מורנו הרב טאלער';
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
     }
 
@@ -1132,11 +1132,15 @@ async function loadYomTovShabbatData(event) {
       tikkunLabel.textContent = isShavuot ? 'תיקון ליל שבועות' : 'לימוד תורה';
     }
 
-    // ── Leil מנחה time = sunset (like erev Shabbat), and show/hide תהלוכה ────
+    // ── Leil מנחה = 20 min before sunset (to allow time for תהלוכה) ──────────
     const sunsetErevIso = zmanimErev.times.sunset;
     const mdLeilMinchaEl = document.getElementById('md-leil-mincha');
     if (mdLeilMinchaEl && sunsetErevIso) {
-      mdLeilMinchaEl.textContent = extractTime(sunsetErevIso);
+      const erevSunsetDate = new Date(sunsetErevIso);
+      erevSunsetDate.setMinutes(erevSunsetDate.getMinutes() - 20);
+      mdLeilMinchaEl.textContent = erevSunsetDate.toLocaleTimeString('he-IL', {
+        timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hour12: false,
+      });
     }
     // תהלוכה lives in the leil section now
     const hasTaalucha = isTaaluchaChabad(event.title, event.hebrew, isIsrael);
@@ -1161,27 +1165,19 @@ async function loadYomTovShabbatData(event) {
       mdTorahLabel.textContent = isShavuot ? 'קריאת התורה עם עשרת הדברות' : 'קריאת התורה';
     }
     const mdTorahTime = document.getElementById('md-torah-time');
-    if (mdTorahTime) mdTorahTime.textContent = '11:30';
+    if (mdTorahTime) mdTorahTime.textContent = '11:50';
 
     // Yizkor on Yom Tov 1
     const hasYizkor = isYizkorChabad(event.title, event.hebrew, isIsrael);
     const mdYizkorRow = document.getElementById('md-yizkor-row');
     if (mdYizkorRow) mdYizkorRow.hidden = !hasYizkor;
     const mdYizkorTime = document.getElementById('md-yizkor-time');
-    if (mdYizkorTime && hasYizkor) mdYizkorTime.textContent = CONFIG.yizkorTime;
+    if (mdYizkorTime && hasYizkor) mdYizkorTime.textContent = '12:30';
 
-    // (תהלוכה is handled in the leil section above)
-
-    // Hitvaadut on Yom Tov 1 (hidden during Pesach)
-    const mdHitvaadutYom1 = document.getElementById('md-hitvaadut-yom1-row');
-    if (mdHitvaadutYom1) {
-      mdHitvaadutYom1.hidden = isDuringPesach(hebrewDateYom1.hm, hebrewDateYom1.hd, isIsrael);
-    }
-
-    // Mincha Yom Tov 1 = sunset (Friday)
+    // Mincha Yom Tov 1 = 19:30 (Friday)
     const mdMinchaYom1El = document.getElementById('md-mincha-yom1');
-    if (mdMinchaYom1El && sunsetYom1Iso) {
-      mdMinchaYom1El.textContent = extractTime(sunsetYom1Iso);
+    if (mdMinchaYom1El) {
+      mdMinchaYom1El.textContent = '19:30';
     }
 
     // Kabbalat Shabbat = tzeit hakochavim (Friday)
@@ -1204,15 +1200,10 @@ async function loadYomTovShabbatData(event) {
       mdHitvaadutShabbat.hidden = isDuringPesach(hebrewDateShabbat.hm, hebrewDateShabbat.hd, isIsrael);
     }
 
-    // Mincha Shabbat = 20 min before Saturday sunset
-    const sunsetShabbatIso = zmanimShabbat.times.sunset;
+    // Mincha Shabbat = 18:45
     const mdMinchaShabbatEl = document.getElementById('md-mincha-shabbat');
-    if (mdMinchaShabbatEl && sunsetShabbatIso) {
-      const sunsetDate = new Date(sunsetShabbatIso);
-      sunsetDate.setMinutes(sunsetDate.getMinutes() - 20);
-      mdMinchaShabbatEl.textContent = sunsetDate.toLocaleTimeString('he-IL', {
-        timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit', hour12: false,
-      });
+    if (mdMinchaShabbatEl) {
+      mdMinchaShabbatEl.textContent = '18:45';
     }
 
     // ── Fix 6: Pirkei Avot label for Shabbat niggunim row ────────────────────
@@ -1223,8 +1214,8 @@ async function loadYomTovShabbatData(event) {
         it => it.category === 'pirkeiAvotSummer' && it.date?.substring(0, 10) === shabbatDateStr,
       );
       mdNiggunimLabel.textContent = pirkeiItem?.hebrew
-        ? `${pirkeiItem.hebrew} · סדר ניגונים`
-        : 'סדר ניגונים';
+        ? `${pirkeiItem.hebrew} · סדר ניגונים · התוועדות עם נטילת ידיים`
+        : 'סדר ניגונים · התוועדות עם נטילת ידיים';
     }
 
     // Motzei Arvit
