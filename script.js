@@ -73,7 +73,7 @@ function setHitvaadutRowVisible(visible) {
   if (row) row.hidden = !visible;
 }
 
-const NIGGUNIM_LABEL_BASE = 'סדר ניגונים וחזרת דא״ח';
+const NIGGUNIM_LABEL_BASE = 'סדר ניגונים · חזרת דא״ח';
 
 function resetNiggunimRow() {
   const labelEl = document.getElementById('niggunim-label');
@@ -580,12 +580,10 @@ async function loadYomTovData(event) {
     const erevDateStr = candles.date.substring(0, 10);
     setErevEveningLabelForYomTov(erevDateStr);
 
-    const dayAfterYomTov = addDaysStr(holidayDateStr, 1);
-    const [zmanimYom, zmanimErev, hebrewDateData, motzeiHebrew] = await Promise.all([
+    const [zmanimYom, zmanimErev, hebrewDateData] = await Promise.all([
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${holidayDateStr}`),
       fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${erevDateStr}`),
       fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${holidayDateStr}&g2h=1`),
-      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${dayAfterYomTov}&g2h=1`),
     ]);
 
     setRebbVideoRowVisible(false);
@@ -1282,11 +1280,6 @@ function setDisplayMode(mode) {
     const btn = document.getElementById('mode-btn-' + m);
     if (btn) btn.classList.toggle('active', m === mode);
   });
-}
-
-// Legacy shim — kept in case anything still calls the old API
-function toggleEcoMode(enabled) {
-  setDisplayMode(enabled ? 'eco' : 'color');
 }
 
 function updateEventNavUI() {
