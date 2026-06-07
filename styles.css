@@ -588,6 +588,13 @@ body.capture-safe-export .logo {
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
 }
+/* Promo rows: show despite [hidden], no background shading */
+.times-table tr[id^="promo-row"][hidden],
+.times-table-compact tr[id^="promo-row"][hidden] {
+  display: table-row !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
 
 /* Compact tables are split across multiple <table> elements by decorative-line
    dividers. JS adds .stripe-even-start to continuation tables whose first
@@ -962,6 +969,13 @@ body.capture-safe-export .logo {
     background: #e8e8e8;
   }
 
+  .times-table tr[id^="promo-row"][hidden],
+  .times-table-compact tr[id^="promo-row"][hidden] {
+    display: table-row !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
   .times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {
     background: #e8e8e8;
   }
@@ -1028,6 +1042,62 @@ body.eco-mode .section-compact .section-title {
 }
 
 /* ─── End Multi-day layout ─────────────────────────────────────────────────── */
+
+/* ─── Shabbat Mevarchim: compact layout ──────────────────────────────────────
+   The extra mevarchim-line heading + molad section adds significant vertical
+   content, which forces a smaller scale() transform and makes everything look
+   narrower. These overrides tighten spacing when #layout-single.mevarchim is
+   active, reducing total content height so the page stays closer to full width. */
+
+#layout-single.mevarchim .section {
+  margin: 3px 18px;
+  padding: 4px 10px;
+}
+
+#layout-single.mevarchim .section-title {
+  font-size: 22px;
+  padding: 4px 24px;
+  margin-bottom: 3px;
+}
+
+#layout-single.mevarchim .section-subtitle {
+  font-size: 17px;
+}
+
+#layout-single.mevarchim .mevarchim-text {
+  font-size: 20px;
+  margin: 0;
+}
+
+#layout-single.mevarchim .shabbat-times-box {
+  padding: 3px 10px;
+}
+
+#layout-single.mevarchim .molad-line,
+#layout-single.mevarchim .molad-roshchodesh {
+  font-size: 16px;
+  padding: 3px 8px 2px;
+}
+
+#layout-single.mevarchim .times-table td {
+  padding: 4px 10px;
+}
+
+#layout-single.mevarchim .times-table .label-cell {
+  font-size: 22px;
+}
+
+#layout-single.mevarchim .times-table .time-cell {
+  font-size: 25px;
+}
+
+#layout-single.mevarchim .zman-item .label-cell {
+  font-size: 14px;
+}
+
+#layout-single.mevarchim .zman-item .time-cell {
+  font-size: 17px;
+}
 
 /* ─── Mode switcher (toolbar) ─────────────────────────────────────────────── */
 .mode-switcher {

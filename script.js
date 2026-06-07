@@ -799,6 +799,10 @@ async function loadShabbatEvent(event) {
       mevarchimEl.style.display = 'none';
     }
 
+    // Compact layout for Mevarchim to offset the extra content
+    const layoutSingle = document.getElementById('layout-single');
+    if (layoutSingle) layoutSingle.classList.toggle('mevarchim', isMevarchim);
+
     // Molad display (only on Mevarchim)
     const moladSection = document.getElementById('molad-section');
     if (isMevarchim && moladItem) {
@@ -883,13 +887,10 @@ async function loadShabbatEvent(event) {
     if (shacharitTimeEl) shacharitTimeEl.textContent = shacharitTime;
     const shacharitLabelEl = document.getElementById('shacharit-label');
     if (shacharitLabelEl) {
-      if (isMevarchim) {
-        shacharitLabelEl.innerHTML =
-          'שחרית <span style="font-size:16px;color:#555;">(שבת מברכים)</span>';
-      } else {
-        shacharitLabelEl.textContent = 'שחרית';
-      }
+      shacharitLabelEl.textContent = 'שחרית';
     }
+
+    const promoRow = document.getElementById('promo-row');
 
     setYizkorRowVisible(false);
     setTaaluchaRowVisible(false);
