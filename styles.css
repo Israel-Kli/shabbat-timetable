@@ -946,22 +946,26 @@ body.capture-safe-export .logo {
     display: none !important;
   }
 
-  .page-frame::before {
+  body.mode-eco .page-frame::before {
     border: 2px solid #888;
     box-shadow: none;
   }
 
-  .page-frame::after {
+  body.mode-eco .page-frame::after {
     border: 1px solid #ddd;
   }
 
-  .frame-pinstripe {
+  body.mode-eco .frame-pinstripe {
     border-color: rgba(184, 134, 11, 0.7);
     box-shadow: none;
   }
 
   .frame-corner {
     color: #1a2d4d;
+  }
+
+  body.mode-color .page-frame {
+    filter: brightness(1);
   }
 
   .time-value:hover,
