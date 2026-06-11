@@ -89,13 +89,37 @@ body {
   border-right: 3px solid #555;
   border-bottom: 3px solid #444;
   border-radius: 10px;
+  background:
+    repeating-linear-gradient(
+      23deg,
+      transparent 0px,
+      transparent 4px,
+      rgba(100, 65, 25, 0.075) 4px,
+      rgba(100, 65, 25, 0.075) 5px
+    ),
+    repeating-linear-gradient(
+      113deg,
+      transparent 0px,
+      transparent 5px,
+      rgba(100, 65, 25, 0.060) 5px,
+      rgba(100, 65, 25, 0.060) 6px
+    ),
+    repeating-linear-gradient(
+      67deg,
+      transparent 0px,
+      transparent 17px,
+      rgba(100, 65, 25, 0.035) 17px,
+      rgba(100, 65, 25, 0.035) 18px
+    );
+  background-clip: padding-box;
   box-shadow:
-    inset 0 2px 1px rgba(255, 255, 255, 0.35),
-    inset 0 -2px 1px rgba(0, 0, 0, 0.12),
-    inset 2px 0 1px rgba(255, 255, 255, 0.15),
-    inset -2px 0 1px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(0, 0, 0, 0.1),
-    0 0 8px rgba(0, 0, 0, 0.06);
+    inset 0 2px 1px rgba(255, 255, 255, 0.55),
+    inset 0 -2px 1px rgba(0, 0, 0, 0.22),
+    inset 2px 0 1px rgba(255, 255, 255, 0.30),
+    inset -2px 0 1px rgba(0, 0, 0, 0.18),
+    inset 0 0 30px rgba(0, 0, 0, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.18),
+    0 0 12px rgba(0, 0, 0, 0.10);
   pointer-events: none;
   -webkit-mask-image:
     radial-gradient(circle at 0 0, transparent 65px, black 110px),
@@ -467,20 +491,19 @@ body {
   width: auto;
   padding: 5px 14px;
   background:
-    /* faint cross-fiber so the card is subtly textured, not glassy-flat */
     repeating-linear-gradient(
-      22deg,
+      28deg,
       transparent 0px,
-      transparent 7px,
-      rgba(0, 0, 0, 0.007) 7px,
-      rgba(0, 0, 0, 0.007) 8px
+      transparent 8px,
+      rgba(100, 65, 25, 0.038) 8px,
+      rgba(100, 65, 25, 0.038) 9px
     ),
     repeating-linear-gradient(
-      112deg,
+      118deg,
       transparent 0px,
-      transparent 11px,
-      rgba(0, 0, 0, 0.005) 11px,
-      rgba(0, 0, 0, 0.005) 12px
+      transparent 14px,
+      rgba(100, 65, 25, 0.022) 14px,
+      rgba(100, 65, 25, 0.022) 15px
     ),
     linear-gradient(
       160deg,
@@ -678,7 +701,15 @@ body.capture-safe-export .logo {
   margin: 5px auto;
   width: 100%;
   max-width: 750px;
-  background: rgba(0, 0, 0, 0.025);
+  background:
+    repeating-linear-gradient(
+      19deg,
+      transparent 0px,
+      transparent 6px,
+      rgba(100, 65, 25, 0.030) 6px,
+      rgba(100, 65, 25, 0.030) 7px
+    ),
+    rgba(100, 65, 25, 0.045);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
   border-left: 1px solid rgba(0, 0, 0, 0.04);
   border-right: 1px solid rgba(255, 255, 255, 0.4);
@@ -1155,6 +1186,7 @@ body.mode-eco .page-frame {
 /* Inner border for Eco: light grey, no heavy box-shadows */
 body.mode-eco .page-frame::before {
   border-color: #bbb #bbb #aaa #aaa;
+  background: none;
   box-shadow: none;
 }
 
