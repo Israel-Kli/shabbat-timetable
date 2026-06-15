@@ -612,7 +612,7 @@ async function loadYomTovData(event) {
     const sunsetIso = zmanimYom.times.sunset;
     document.getElementById('sunset-time').textContent = extractTime(sunsetIso);
 
-    const tzeitIso = zmanimYom.times.tzeit7083deg;
+    const tzeitIso = zmanimYom.times.tzaisBaalHatanya;
     if (tzeitIso) document.getElementById('tzeit-time').textContent = extractTime(tzeitIso);
 
     const shemaIso = zmanimYom.times.sofZmanShma;
@@ -865,8 +865,7 @@ async function loadShabbatEvent(event) {
     const sunsetTime = extractTime(sunsetIso);
     document.getElementById('sunset-time').textContent = sunsetTime;
 
-    // Tzeit Hakochavim - 7.083° below horizon per Alter Rebbe
-    const tzeitIso = zmanim.times.tzeit7083deg;
+    const tzeitIso = zmanim.times.tzaisBaalHatanya;
     if (tzeitIso) document.getElementById('tzeit-time').textContent = extractTime(tzeitIso);
 
     // Sof Zman Kriat Shema
@@ -1113,7 +1112,7 @@ async function loadYomTovShabbatData(event) {
     if (havdalahShabbat) document.getElementById('md-havdalah-time').textContent = extractTime(havdalahShabbat.date);
 
     // Tzeit Hakochavim (Shabbat)
-    const tzeitIso = zmanimShabbat.times.tzeit7083deg;
+    const tzeitIso = zmanimShabbat.times.tzaisBaalHatanya;
     if (tzeitIso) document.getElementById('md-tzeit-time').textContent = extractTime(tzeitIso);
 
     // Chatzot (Shabbat)
@@ -1180,7 +1179,7 @@ async function loadYomTovShabbatData(event) {
     }
 
     // Kabbalat Shabbat = tzeit hakochavim (Friday)
-    const tzeit1Iso = zmanimYom1.times.tzeit7083deg;
+    const tzeit1Iso = zmanimYom1.times.tzaisBaalHatanya;
     const mdKabbalatEl = document.getElementById('md-kabbalat-shabbat-time');
     if (mdKabbalatEl && tzeit1Iso) {
       mdKabbalatEl.textContent = extractTime(tzeit1Iso);
