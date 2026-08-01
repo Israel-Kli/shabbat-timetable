@@ -1282,6 +1282,12 @@ function setDisplayMode(mode) {
   });
 }
 
+function setShelterVisible(visible) {
+  const note = document.getElementById('shelter-note');
+  if (note) note.hidden = !visible;
+  fitPageToA4();
+}
+
 function updateEventNavUI() {
   const sel = document.getElementById('event-select');
   const hint = document.getElementById('event-nav-hint');
@@ -1570,6 +1576,9 @@ async function saveAsJPG() {
 document.addEventListener('DOMContentLoaded', async () => {
   // Apply default display mode (colorful enrich)
   setDisplayMode('color');
+  // Browsers restore checkbox state across reloads, so sync the footer to it
+  const shelterToggle = document.getElementById('shelter-toggle');
+  if (shelterToggle) setShelterVisible(shelterToggle.checked);
   attachRowButtons();
   try {
     events = await buildEventsList();

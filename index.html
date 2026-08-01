@@ -29,6 +29,10 @@
         <button type="button" class="mode-btn" id="mode-btn-gray"    onclick="setDisplayMode('gray')"    title="גווני אפור עם עיצוב מלא ומרקמים">🖤 אפור עשיר</button>
         <button type="button" class="mode-btn active" id="mode-btn-color"   onclick="setDisplayMode('color')"   title="תצוגה צבעונית מלאה">🎨 צבעוני</button>
       </div>
+      <label class="toolbar-check" title="הצגת ״בתוך מקלט ציבורי״ בתחתית הדף">
+        <input type="checkbox" id="shelter-toggle" onchange="setShelterVisible(this.checked)" />
+        <span>🛡️ מקלט</span>
+      </label>
       <div class="week-nav">
         <button type="button" class="week-btn" onclick="changeEvent(1)" title="האירוע הבא">קדימה ›</button>
         <div class="event-picker-wrap">
@@ -181,11 +185,29 @@
               </tr>
               <tr id="promo-row" hidden>
                 <td colspan="2" style="padding:6px 12px;">
-                  <div style="padding:10px 16px;background:linear-gradient(135deg,#fff8e1,#fff3c4);border:2px solid #f5c518;border-radius:10px;font-size:17px;line-height:1.6;color:#5d4200;text-align:center;">
-                    <strong style="font-size:20px;">🍫 מבצע תפילה בציבור 🍫 </strong><br>
-                    מי שמתפלל עם המניין <strong>ומסיים יחד עם החזן ״נשמת כל חי״</strong> —<br>
-                    מקבל בסוף התפילה <strong>חפיסת שוקולד פרימיום</strong> אישית <br>
-                    <span style="font-size:15px;color:#8a6d00;">* לגיל בר מצווה ומעלה</span>
+                  <div style="padding:10px 16px;background:linear-gradient(135deg,#fff8e1,#fff3c4);border:2px solid #f5c518;border-radius:10px;font-size:16px;line-height:1.55;color:#5d4200;text-align:center;">
+                    <strong style="font-size:20px;"><span style="margin:0 8px;">🍫</span>מבצע תפילה בציבור<span style="margin:0 8px;">🍫</span></strong><br>
+                    מי שמתפלל עם המניין, <strong>מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה</strong> —<br>
+                    מקבל <strong>חפיסת שוקולד פרימיום</strong> אישית · עד גמר המלאי
+                    <div style="margin:8px 0 6px;border-top:1px dashed #d4a900;"></div>
+                    <strong style="font-size:19px;"><span style="margin:0 8px;">✈️</span>מבצע ענק — עד כ״ד טבת!<span style="margin:0 8px;">✈️</span></strong><br>
+                    מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>. המתפללים עם הציבור בתנאים דלעיל:
+                    <div style="margin-top:6px;">
+                      <div style="display:inline-block;width:31%;vertical-align:top;background:#fffdf2;border:1.5px solid #e0b700;border-radius:8px;padding:5px 6px;box-sizing:border-box;">
+                        <strong style="font-size:18px;">20 פעמים</strong><br>
+                        <strong>2,000 ₪</strong>
+                      </div>
+                      <div style="display:inline-block;width:31%;vertical-align:top;background:#fffdf2;border:1.5px solid #e0b700;border-radius:8px;padding:5px 6px;box-sizing:border-box;">
+                        <strong style="font-size:18px;">15 פעמים</strong><br>
+                        <strong>800 ₪</strong>
+                      </div>
+                      <div style="display:inline-block;width:31%;vertical-align:top;background:#fffdf2;border:1.5px solid #e0b700;border-radius:8px;padding:5px 6px;box-sizing:border-box;">
+                        <strong style="font-size:18px;">10 פעמים</strong><br>
+                        <strong>300 ₪</strong>
+                      </div>
+                    </div>
+                    <div style="margin:8px 0 4px;padding:5px 12px;background:#5d4200;color:#fff8e1;border-radius:6px;font-size:18px;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact;">ללא הגרלה — כל העומד בתנאים מקבל!</div>
+                    <span style="font-size:14px;color:#8a6d00;">השתתפות בכרטיס טיסה לרבי · לי׳ שבט או לאחריו · כנגד קבלה · מגיל בר מצווה</span>
                   </div>
                 </td>
               </tr>
@@ -356,8 +378,10 @@
               <tr id="promo-row-yom1" hidden>
                 <td colspan="2" style="padding:4px 10px;">
                   <div style="padding:6px 12px;background:linear-gradient(135deg,#fff8e1,#fff3c4);border:2px solid #f5c518;border-radius:8px;font-size:14px;line-height:1.5;color:#5d4200;text-align:center;">
-                    <strong style="font-size:16px;">🍫 מבצע תפילה בציבור!</strong>
-                    מתפלל עם המניין ב״שוכן עד״? מקבל חפיסת שוקולד פרימיום אישית
+                    <strong style="font-size:16px;"><span style="margin:0 6px;">🍫</span>מבצע תפילה בציבור!</strong>
+                    מתפלל עם המניין, <strong>מסיים עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה</strong>? מקבל חפיסת שוקולד פרימיום אישית · עד גמר המלאי<br>
+                    <strong><span style="margin:0 6px;">✈️</span>מבצע ענק:</strong> מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>. המתפללים עם הציבור בתנאים דלעיל: <strong>20 פעמים ← 2,000 ₪</strong> · <strong>15 פעמים ← 800 ₪</strong> · <strong>10 פעמים ← 300 ₪</strong> השתתפות בכרטיס טיסה לרבי, לי׳ שבט או לאחריו, כנגד קבלה
+                    <div style="margin:4px 0 2px;padding:2px 8px;background:#5d4200;color:#fff8e1;border-radius:5px;font-size:15px;font-weight:800;-webkit-print-color-adjust:exact;print-color-adjust:exact;">ללא הגרלה — כל העומד בתנאים מקבל!</div>
                     <span style="font-size:12px;color:#8a6d00;">*לגיל בר מצווה ומעלה</span>
                   </div>
                 </td>
@@ -431,15 +455,6 @@
                   <span class="time-value" id="md-shacharit-shabbat" contenteditable="true">10:00</span>
                 </td>
               </tr>
-              <tr id="promo-row-shabbat" hidden>
-                <td colspan="2" style="padding:4px 10px;">
-                  <div style="padding:6px 12px;background:linear-gradient(135deg,#fff8e1,#fff3c4);border:2px solid #f5c518;border-radius:8px;font-size:14px;line-height:1.5;color:#5d4200;text-align:center;">
-                    <strong style="font-size:16px;">🍫 מבצע תפילה בציבור!</strong>
-                    מתפלל עם המניין ב״שוכן עד״? מקבל חפיסת שוקולד פרימיום אישית
-                    <span style="font-size:12px;color:#8a6d00;">*לגיל בר מצווה ומעלה</span>
-                  </div>
-                </td>
-              </tr>
               <tr id="md-hitvaadut-shabbat-row">
                 <td class="label-cell">
                   <span class="label-editable" contenteditable="true">התוועדות חסידית</span>
@@ -491,7 +506,7 @@
         </div>
         <div class="footer">
           <div class="chabad-name">בית כנסת חב״ד המרכזי אור יהודה</div>
-          <div class="address">דוד אלעזר 30, שכונת גיורא, אור יהודה · <span class="shelter-emphasis">בתוך מקלט ציבורי</span></div>
+          <div class="address">דוד אלעזר 30, שכונת גיורא, אור יהודה<span id="shelter-note" hidden> · <span class="shelter-emphasis">בתוך מקלט ציבורי</span></span></div>
           <div class="motto">יחי אדוננו מורנו ורבינו מלך המשיח לעולם ועד</div>
         </div>
       </div>
