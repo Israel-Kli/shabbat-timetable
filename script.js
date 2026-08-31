@@ -100,6 +100,22 @@ function setShabbatKidsPartyRowVisible(visible) {
   if (row) row.hidden = !visible;
 }
 
+// שבת סליחות — the Shabbat before the first Selichot. Chabad starts them on
+// Motzei Shabbat "אחר, ובסמוך, לחצות לילה" (ספר המנהגים), and the Rebbe's minyan
+// said them at 1:00, with a farbrengen beforehand as preparation.
+function setSelichotRowsVisible(visible, chatzotNightTime) {
+  ['selichot-hitvaadut-row', 'selichot-row'].forEach((id) => {
+    const row = document.getElementById(id);
+    if (row) row.hidden = !visible;
+  });
+  const note = document.getElementById('selichot-note');
+  if (note) {
+    note.textContent = chatzotNightTime
+      ? ` (חצות הלילה · ${chatzotNightTime})`
+      : ' חצות הלילה';
+  }
+}
+
 const HEBREW_MONTHS = {
   Nisan: 'ניסן',
   Iyyar: 'אייר',
@@ -598,6 +614,7 @@ async function loadYomTovData(event) {
 
     document.getElementById('mevarchim-line').style.display = 'none';
     document.getElementById('molad-section').style.display = 'none';
+    setSelichotRowsVisible(false);
 
     document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew).replace(
       /\sב(?=[א-ת])/u,
@@ -666,6 +683,7 @@ async function loadYomTovData(event) {
     setYizkorRowVisible(false);
     setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
+    setSelichotRowsVisible(false);
     resetNiggunimRow();
     const erevArvitFallback = document.getElementById('friday-arvit');
     if (erevArvitFallback) erevArvitFallback.textContent = 'בהמשך למנחה';
@@ -712,6 +730,7 @@ async function loadShabbatEvent(event) {
     let specialShabbat = null;
     let moladItem = null;
     let mevarchimItem = null;
+    let selichotItem = null;
 
     for (const item of shabbatData.items) {
       if (item.category === 'candles' && !candles) candles = item;
@@ -720,6 +739,7 @@ async function loadShabbatEvent(event) {
       if (item.category === 'holiday' && item.subcat === 'shabbat' && !specialShabbat) specialShabbat = item;
       if (item.category === 'molad' && !moladItem) moladItem = item;
       if (item.category === 'mevarchim' && !mevarchimItem) mevarchimItem = item;
+      if (item.title === 'Leil Selichot' && !selichotItem) selichotItem = item;
     }
 
     if (!candles || !havdalah) {
@@ -732,6 +752,10 @@ async function loadShabbatEvent(event) {
     const saturdayDateStr = havdalah.date.substring(0, 10);
 
     const isMevarchim = !!mevarchimItem;
+    const isShabbatSelichot = !!selichotItem;
+    // Tishrei is never blessed, yet the whole Tehillim is still said that
+    // morning as on any Shabbat Mevarchim (ספר המנהגים עמ' 30)
+    const saysWholeTehillim = isMevarchim || isShabbatSelichot;
 
     // For Mevarchim: fetch Rosh Chodesh dates for the upcoming month
     let roshChodeshItems = [];
@@ -767,6 +791,16 @@ async function loadShabbatEvent(event) {
     setRebbVideoRowVisible(true);
     setKiddushLevanaRowVisible(isKiddushLevanaHebrewDay(motzeiHebrew?.hd));
 
+    // Chatzot halayla belongs to Sunday's zmanim — the night runs past midnight
+    let chatzotNightTime = null;
+    if (isShabbatSelichot) {
+      const motzeiZmanim = await fetchJSON(
+        `https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${sundayDateStr}`,
+      );
+      chatzotNightTime = extractTime(motzeiZmanim.times.chatzotNight);
+    }
+    setSelichotRowsVisible(isShabbatSelichot, chatzotNightTime);
+
     const sunsetIso = zmanim.times.sunset;
 
     const saturdayHolidayHebrew = pickSaturdayHolidayHebrew(shabbatData.items, saturdayDateStr);
@@ -790,10 +824,14 @@ async function loadShabbatEvent(event) {
     }
     adjustMainTitleForContent(parashaEl);
 
-    // Mevarchim indicator
+    // Mevarchim indicator, or שבת סליחות — which is never Mevarchim, since
+    // Tishrei is the one month we do not bless
     const mevarchimEl = document.getElementById('mevarchim-line');
     if (isMevarchim) {
       mevarchimEl.textContent = mevarchimItem.hebrew || `שבת אחדות, מברכים חודש`;
+      mevarchimEl.style.display = 'block';
+    } else if (isShabbatSelichot) {
+      mevarchimEl.textContent = 'שבת סליחות';
       mevarchimEl.style.display = 'block';
     } else {
       mevarchimEl.style.display = 'none';
@@ -881,7 +919,7 @@ async function loadShabbatEvent(event) {
     if (fridayMinchaEl) fridayMinchaEl.textContent = sunsetTime;
 
     // Shacharit
-    const shacharitTime = isMevarchim ? CONFIG.shacharitMevarchim : CONFIG.shacharitDefault;
+    const shacharitTime = saysWholeTehillim ? CONFIG.shacharitMevarchim : CONFIG.shacharitDefault;
     const shacharitTimeEl = document.getElementById('shacharit-time');
     if (shacharitTimeEl) shacharitTimeEl.textContent = shacharitTime;
     const shacharitLabelEl = document.getElementById('shacharit-label');
@@ -898,7 +936,7 @@ async function loadShabbatEvent(event) {
     // Chassidut / Tehillim on Mevarchim
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
-    if (isMevarchim) {
+    if (saysWholeTehillim) {
       if (chassidutLabelEl) chassidutLabelEl.textContent = 'אמירת תהילים בציבור';
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutMevarchim;
     } else {
@@ -933,6 +971,7 @@ async function loadShabbatEvent(event) {
     setYizkorRowVisible(false);
     setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
+    setSelichotRowsVisible(false);
     resetNiggunimRow();
 
     const parashaFallback = document.getElementById('parasha-name');
@@ -1084,6 +1123,7 @@ async function loadYomTovShabbatData(event) {
 
     document.getElementById('mevarchim-line').style.display = 'none';
     document.getElementById('molad-section').style.display = 'none';
+    setSelichotRowsVisible(false);
 
     // Hebrew date = span both holy days: e.g. "ו׳-ז׳ סיון תשפ״ו"
     // hebrewDateYom1.hebrew  = e.g. "ו׳ בסיון תשפ״ו"
