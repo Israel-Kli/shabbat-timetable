@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>מבצע תפילה בציבור — לוח התקדמות</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700;800&family=Rubik:wght@500;700&family=Suez+One&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Tracker-specific styles (page chrome comes from styles.css) ── */
+
+      /* Tighter than the timetable header: the table needs the vertical room */
+      .header {
+        margin-top: 12px;
+      }
+
+      .logo {
+        width: 84px;
+      }
+
+      .trk-subtitle {
+        font-family: 'Heebo', sans-serif;
+        font-size: 15px;
+        color: #4a4a4a;
+        margin-top: 2px;
+      }
+
+      .trk-stats {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin: 6px 14px 2px;
+      }
+
+      .trk-stat {
+        flex: 1;
+        padding: 4px 6px;
+        background: linear-gradient(180deg, #ffffff, #f2efe9);
+        border: 1.5px solid #c9a227;
+        border-radius: 8px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-stat-num {
+        font-family: 'Rubik', sans-serif;
+        font-size: 22px;
+        font-weight: 700;
+        line-height: 1.1;
+        color: #1a2d4d;
+      }
+
+      .trk-stat-label {
+        font-size: 12px;
+        color: #5a5a5a;
+      }
+
+      .trk-table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+        font-family: 'Heebo', sans-serif;
+      }
+
+      .trk-table th {
+        font-size: 12px;
+        font-weight: 700;
+        color: #1a2d4d;
+        padding: 3px 2px;
+        border-bottom: 2px solid #1a2d4d;
+        vertical-align: bottom;
+      }
+
+      .trk-table th .trk-th-date {
+        display: block;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .trk-table th .trk-th-parasha {
+        display: block;
+        font-size: 10px;
+        font-weight: 400;
+        color: #6b6b6b;
+      }
+
+      .trk-table td {
+        padding: 2px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.09);
+      }
+
+      .trk-table tbody tr:nth-child(even) {
+        background: rgba(26, 45, 77, 0.04);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-table tbody tr.trk-lead {
+        background: rgba(201, 162, 39, 0.18);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-name {
+        width: 190px;
+        text-align: right;
+        font-size: 15px;
+        font-weight: 500;
+        padding-right: 6px !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .trk-lead .trk-name {
+        font-weight: 700;
+      }
+
+      .trk-check {
+        font-family: 'Rubik', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #7a5c00;
+        text-align: center;
+      }
+
+      .trk-miss {
+        color: #c4c4c4;
+        text-align: center;
+      }
+
+      .trk-total {
+        width: 42px;
+        text-align: center;
+      }
+
+      .trk-total span {
+        display: inline-block;
+        min-width: 26px;
+        padding: 1px 4px;
+        font-family: 'Rubik', sans-serif;
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff8e1;
+        background: #1a2d4d;
+        border-radius: 5px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Stamp-card track: 25 slots, one per opportunity in the campaign */
+      .trk-track-cell {
+        width: 220px;
+      }
+
+      .trk-track-wrap {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .trk-track {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .trk-slot {
+        width: 6px;
+        height: 13px;
+        border: 1px solid #c8bfa6;
+        background: #fdfcf8;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-slot.filled {
+        background: #e0b700;
+        border-color: #8a6d00;
+      }
+
+      .trk-slot.tier {
+        border-inline-end: 2px solid #1a2d4d;
+      }
+
+      .trk-gap {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7a5c00;
+        white-space: nowrap;
+      }
+
+      /* Open slots: as many as fit under the last real participant */
+      .trk-invite td {
+        background: rgba(245, 197, 24, 0.07);
+        border-bottom: 1px dashed rgba(138, 109, 0, 0.4);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-invite .trk-name {
+        font-style: italic;
+        font-weight: 600;
+        color: #96793a;
+      }
+
+      .trk-invite .trk-total span {
+        background: transparent;
+        color: #96793a;
+        border: 1.5px dashed #d4a900;
+      }
+
+      .trk-invite .trk-gap {
+        color: #96793a;
+      }
+
+      .trk-ruler {
+        display: flex;
+        flex-direction: row;
+        height: 14px;
+      }
+
+      .trk-ruler-slot {
+        width: 6px;
+        position: relative;
+      }
+
+      .trk-ruler-slot span {
+        position: absolute;
+        bottom: 0;
+        right: 50%;
+        transform: translateX(50%);
+        font-family: 'Rubik', sans-serif;
+        font-size: 9px;
+        font-weight: 700;
+        color: #1a2d4d;
+        white-space: nowrap;
+      }
+
+      .trk-motivation {
+        margin: 8px 14px 0;
+        padding: 8px 16px;
+        background: linear-gradient(135deg, #fff8e1, #fff3c4);
+        border: 2px solid #f5c518;
+        border-radius: 10px;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #5d4200;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-pasuk {
+        font-family: 'Suez One', 'David', serif;
+        font-size: 22px;
+        color: #4a3400;
+      }
+
+      .trk-pasuk-src {
+        font-family: 'Heebo', sans-serif;
+        font-size: 12px;
+        color: #8a6d00;
+      }
+
+      .trk-tiers {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 6px;
+      }
+
+      .trk-tier-chip {
+        flex: 1;
+        background: #fffdf2;
+        border: 1.5px solid #e0b700;
+        border-radius: 8px;
+        padding: 3px 4px;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .trk-tier-chip b {
+        font-size: 16px;
+      }
+
+      /* Eco mode: styles.css turns the page white and greyscale, these strip the
+         tracker's own heavy fills so the print stays light */
+      body.mode-eco .trk-stat,
+      body.mode-eco .trk-tier-chip,
+      body.mode-eco .trk-motivation {
+        background: white;
+        border-color: #777;
+      }
+
+      body.mode-eco .trk-total span {
+        background: white;
+        color: #222;
+        border: 1.5px solid #666;
+      }
+
+      body.mode-eco .trk-invite .trk-total span {
+        border-style: dashed;
+      }
+
+      body.mode-eco .trk-table tbody tr.trk-lead {
+        background: none;
+      }
+
+      body.mode-eco .trk-invite td {
+        background: none;
+      }
+
+      body.mode-eco .trk-slot.filled {
+        background: #555;
+        border-color: #333;
+      }
+
+      .trk-note {
+        margin: 6px 18px 0;
+        font-size: 13.5px;
+        line-height: 1.5;
+        color: #4a4a4a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="toolbar no-print">
+      <button onclick="window.print()">🖨️ הדפסה</button>
+      <button onclick="location.href='index.html'">↩ לוח זמני התפילות</button>
+      <div class="mode-switcher" role="group" aria-label="מצב תצוגה">
+        <span class="mode-switcher-label">מצב תצוגה:</span>
+        <button type="button" class="mode-btn active" id="mode-btn-eco" onclick="setDisplayMode('eco')" title="חיסכון מרבי בדיו — גווני אפור ללא עיצוב">🌿 חיסכון</button>
+        <button type="button" class="mode-btn" id="mode-btn-gray" onclick="setDisplayMode('gray')" title="גווני אפור עם עיצוב מלא ומרקמים">🖤 אפור עשיר</button>
+        <button type="button" class="mode-btn" id="mode-btn-color" onclick="setDisplayMode('color')" title="תצוגה צבעונית מלאה">🎨 צבעוני</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <div class="page-frame">
+        <div class="frame-pinstripe" aria-hidden="true"></div>
+        <img class="frame-corner frame-corner--tl" src="assets/corner-up-left.svg" alt="" aria-hidden="true" />
+        <img class="frame-corner frame-corner--tr" src="assets/corner-up-left.svg" alt="" aria-hidden="true" />
+        <img class="frame-corner frame-corner--bl" src="assets/corner-up-left.svg" alt="" aria-hidden="true" />
+        <img class="frame-corner frame-corner--br" src="assets/corner-up-left.svg" alt="" aria-hidden="true" />
+        <div class="bsd">בס״ד</div>
+
+        <div class="page-frame-inner">
+          <div class="header">
+            <div class="header-content">
+              <img
+                src="assets/chabad_or_yehuda_color_logo_transparent.png"
+                alt="לוגו בית חב״ד המרכזי אור יהודה"
+                class="logo"
+              />
+              <div class="header-text">
+                <div class="main-title main-title--tight">
+                  מבצע תפילה בציבור <span class="parasha-value">לוח התקדמות</span>
+                </div>
+                <div class="trk-subtitle">
+                  מט״ו באב תשפ״ו ועד כ״ד טבת תשפ״ז · עדכון אחרון: <span id="trk-last"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="decorative-line"></div>
+
+          <div class="trk-stats">
+            <div class="trk-stat">
+              <div class="trk-stat-num" id="stat-total">25</div>
+              <div class="trk-stat-label">שבתות וימים טובים במבצע</div>
+            </div>
+            <div class="trk-stat">
+              <div class="trk-stat-num" id="stat-done"></div>
+              <div class="trk-stat-label">שכבר עברו</div>
+            </div>
+            <div class="trk-stat">
+              <div class="trk-stat-num" id="stat-left"></div>
+              <div class="trk-stat-label">הזדמנויות שנותרו</div>
+            </div>
+            <div class="trk-stat">
+              <div class="trk-stat-num" id="stat-people"></div>
+              <div class="trk-stat-label">משתתפים עד כה</div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-title">טבלת המשתתפים</div>
+            <table class="trk-table">
+              <thead id="trk-head"></thead>
+              <tbody id="trk-body"></tbody>
+            </table>
+          </div>
+
+          <div class="trk-motivation">
+            <div class="trk-pasuk">בְּרֹב עָם הַדְרַת מֶלֶךְ <span class="trk-pasuk-src">(משלי י״ד, כ״ח)</span></div>
+            <div id="trk-message"></div>
+            <div class="trk-tiers">
+              <div class="trk-tier-chip"><b>10 פעמים</b> · 300 ₪</div>
+              <div class="trk-tier-chip"><b>15 פעמים</b> · 800 ₪</div>
+              <div class="trk-tier-chip"><b>20 פעמים</b> · 2,000 ₪</div>
+            </div>
+          </div>
+
+          <div class="trk-note">
+            התנאים: תפילה עם המניין · סיום ״נשמת כל חי״ יחד עם החזן · שהייה עד סוף התפילה · מגיל בר מצווה ·
+            השתתפות בכרטיס טיסה לרבי, לי׳ שבט או לאחריו, כנגד קבלה · ללא הגרלה, כל העומד בתנאים מקבל.<br />
+            ייתכנו טעויות ברישום. לתיקונים והשלמות פנו לישראל קליגר.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ── Data ──────────────────────────────────────────────────────────────
+      // To update: append one entry per Shabbat / Yom Tov, with the names of
+      // everyone who met the conditions. Everything else is derived.
+
+      const TOTAL_OCCASIONS = 25; // מט״ו באב ועד כ״ד טבת
+      const TIERS = [10, 15, 20];
+      const MAX_DATE_COLUMNS = 8; // older columns drop off the grid; totals still count them
+
+      const OCCASIONS = [
+        {
+          date: 'ח״י אב',
+          parasha: 'עקב',
+          names: ['משיח פרידמן', 'לוי פורסט', 'מיכאל שלמה קרולינסקי', 'מרדכי גיל'],
+        },
+        {
+          date: 'כ״ה אב',
+          parasha: 'ראה',
+          names: [
+            'מאיר ג׳ובני',
+            'לוי פורסט',
+            'אלירן בן שימעון הלוי',
+            'מרדכי גיל',
+            'אביתר כהן',
+            'רוני פיצחדזה',
+            'פאלע נוטיק',
+            'משפחת מלייב',
+            'יוסף יצחק טאלער',
+          ],
+        },
+        {
+          date: 'ב׳ אלול',
+          parasha: 'שופטים',
+          names: [
+            'דני פיצחדזה',
+            'רוני פיצחדזה',
+            'יוסף יצחק טאלער',
+            'פאלע נוטיק',
+            'לוי פורסט',
+            'משיח פרידמן',
+            'מרדכי גיל',
+          ],
+        },
+        {
+          date: 'ט׳ אלול',
+          parasha: 'כי תצא',
+          names: [
+            'רוני פיצחדזה',
+            'מרדכי גיל',
+            'אביתר כהן',
+            'לוי פורסט',
+            'משיח פרידמן',
+            'משה בורוכוב +2',
+            'יוסף יצחק טאלער',
+          ],
+        },
+        {
+          date: 'ט״ז אלול',
+          parasha: 'כי תבוא',
+          names: [
+            'יוסף יצחק טאלער',
+            'רוני פיצחדזה',
+            'לוי פורסט',
+            'משיח פרידמן',
+            'עמוס גבזו',
+          ],
+        },
+      ];
+
+      // ── Render ────────────────────────────────────────────────────────────
+
+      const shownOccasions = OCCASIONS.slice(-MAX_DATE_COLUMNS);
+      const shownOffset = OCCASIONS.length - shownOccasions.length;
+
+      const attendance = new Map(); // name -> Set of occasion indices
+      OCCASIONS.forEach((occasion, index) => {
+        occasion.names.forEach((name) => {
+          if (!attendance.has(name)) attendance.set(name, new Set());
+          attendance.get(name).add(index);
+        });
+      });
+
+      const rows = [...attendance.entries()]
+        .map(([name, weeks]) => ({ name, weeks, total: weeks.size }))
+        .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'he'));
+
+      const leadTotal = rows.length ? rows[0].total : 0;
+      const remaining = TOTAL_OCCASIONS - OCCASIONS.length;
+      const last = OCCASIONS[OCCASIONS.length - 1];
+
+      document.getElementById('trk-last').textContent =
+        'שבת פרשת ' + last.parasha + ', ' + last.date;
+      document.getElementById('stat-total').textContent = TOTAL_OCCASIONS;
+      document.getElementById('stat-done').textContent = OCCASIONS.length;
+      document.getElementById('stat-left').textContent = remaining;
+      document.getElementById('stat-people').textContent = rows.length;
+
+      function trackHtml(weeks) {
+        let html = '<div class="trk-track">';
+        for (let slot = 1; slot <= TOTAL_OCCASIONS; slot++) {
+          const filled = slot <= weeks.size ? ' filled' : '';
+          const tier = TIERS.includes(slot) ? ' tier' : '';
+          html += '<div class="trk-slot' + filled + tier + '"></div>';
+        }
+        return html + '</div>';
+      }
+
+      function gapText(total) {
+        const nextTier = TIERS.find((t) => t > total);
+        if (!nextTier) return 'הגיע ל-20!';
+        return 'עוד ' + (nextTier - total) + ' ל-' + nextTier;
+      }
+
+      let rulerHtml = '<div class="trk-ruler">';
+      const tierPrize = { 10: '300 ₪', 15: '800 ₪', 20: '2,000 ₪' };
+      for (let slot = 1; slot <= TOTAL_OCCASIONS; slot++) {
+        rulerHtml +=
+          '<div class="trk-ruler-slot">' +
+          (tierPrize[slot] ? '<span>' + tierPrize[slot] + '</span>' : '') +
+          '</div>';
+      }
+      rulerHtml += '</div>';
+
+      document.getElementById('trk-head').innerHTML =
+        '<tr>' +
+        '<th class="trk-name">שם המשתתף</th>' +
+        shownOccasions
+          .map(
+            (o) =>
+              '<th><span class="trk-th-date">' +
+              o.date +
+              '</span><span class="trk-th-parasha">' +
+              o.parasha +
+              '</span></th>'
+          )
+          .join('') +
+        '<th class="trk-total">סה״כ</th>' +
+        '<th class="trk-track-cell">' + rulerHtml + '</th>' +
+        '</tr>';
+
+      document.getElementById('trk-body').innerHTML = rows
+        .map((row) => {
+          const marks = shownOccasions
+            .map((_, i) =>
+              row.weeks.has(shownOffset + i)
+                ? '<td class="trk-check">✓</td>'
+                : '<td class="trk-miss">·</td>'
+            )
+            .join('');
+          return (
+            '<tr class="' + (row.total === leadTotal ? 'trk-lead' : '') + '">' +
+            '<td class="trk-name">' + row.name + (row.total === leadTotal ? ' 🏆' : '') + '</td>' +
+            marks +
+            '<td class="trk-total"><span>' + row.total + '</span></td>' +
+            '<td class="trk-track-cell"><div class="trk-track-wrap">' +
+            trackHtml(row.weeks) +
+            '<span class="trk-gap">' + gapText(row.total) + '</span>' +
+            '</div></td>' +
+            '</tr>'
+          );
+        })
+        .join('');
+
+      const stillOpen =
+        remaining >= 20
+          ? ' גם מי שטרם התחיל יכול עוד להגיע ל-20 פעמים ולזכות בהשתתפות בכרטיס טיסה לרבי.'
+          : '';
+      document.getElementById('trk-message').innerHTML =
+        'כל שבת נספרת. נותרו <b>' +
+        remaining +
+        ' שבתות וימים טובים</b> עד כ״ד טבת.' +
+        stillOpen +
+        ' וכל מי שמתפלל עם המניין, מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה, מקבל גם חפיסת שוקולד פרימיום בכל שבת.';
+
+      // ── Header text that survives more date columns ───────────────────────
+
+      // Each new Shabbat narrows the date columns, so shrink the header type
+      // until the longest label fits instead of letting it spill over.
+      function fitHeaderText() {
+        const shrink = (selector, startSize, minSize) => {
+          const spans = [...document.querySelectorAll(selector)];
+          let size = startSize;
+          spans.forEach((el) => (el.style.fontSize = ''));
+          const spills = () =>
+            spans.some((el) => el.scrollWidth > el.parentElement.clientWidth - 4);
+          while (size > minSize && spills()) {
+            size -= 0.5;
+            spans.forEach((el) => (el.style.fontSize = size + 'px'));
+          }
+        };
+        shrink('.trk-th-date', 13, 9);
+        shrink('.trk-th-parasha', 10, 8);
+      }
+
+      // ── Open slots ────────────────────────────────────────────────────────
+
+      const MAX_OPEN_SLOTS = 6;
+
+      function contentBottomGap() {
+        const inner = document.querySelector('.page-frame-inner');
+        const frame = document.querySelector('.page-frame');
+        const style = getComputedStyle(frame);
+        const available =
+          frame.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+        const pageBottom =
+          frame.getBoundingClientRect().top + parseFloat(style.paddingTop) + available;
+        return pageBottom - inner.lastElementChild.getBoundingClientRect().bottom;
+      }
+
+      function openSlotHtml() {
+        return (
+          '<tr class="trk-invite">' +
+          '<td class="trk-name">כאן יכול להיות שמך</td>' +
+          shownOccasions.map(() => '<td class="trk-miss">·</td>').join('') +
+          '<td class="trk-total"><span>0</span></td>' +
+          '<td class="trk-track-cell"><div class="trk-track-wrap">' +
+          trackHtml(new Set()) +
+          '<span class="trk-gap">' + gapText(0) + '</span>' +
+          '</div></td>' +
+          '</tr>'
+        );
+      }
+
+      // Fill the room left under the last participant with open slots, so the
+      // page never ends on blank paper. Real names push them out week by week.
+      function fillOpenSlots() {
+        const body = document.getElementById('trk-body');
+        body.querySelectorAll('.trk-invite').forEach((tr) => tr.remove());
+        for (let i = 0; i < MAX_OPEN_SLOTS; i++) {
+          body.insertAdjacentHTML('beforeend', openSlotHtml());
+          if (contentBottomGap() < 0) {
+            body.lastElementChild.remove();
+            return;
+          }
+        }
+      }
+
+      // ── Keep everything on one A4 page ────────────────────────────────────
+
+      function fitToPage() {
+        const inner = document.querySelector('.page-frame-inner');
+        const frame = document.querySelector('.page-frame');
+        if (!inner || !frame) return;
+
+        inner.style.transform = 'none';
+        const style = getComputedStyle(frame);
+        const available =
+          frame.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+
+        // Drop the flex constraint so scrollHeight reports the natural content height
+        inner.style.flex = 'none';
+        inner.style.height = 'auto';
+        const prevOverflow = frame.style.overflow;
+        frame.style.overflow = 'visible';
+        void inner.offsetHeight;
+        const needed = inner.scrollHeight;
+        frame.style.overflow = prevOverflow;
+
+        if (needed > available) {
+          // Keep the unscaled height in layout so nothing is clipped before the
+          // transform shrinks it back down to the page.
+          inner.style.height = needed + 'px';
+          inner.style.transform = 'scale(' + available / needed + ')';
+        } else {
+          inner.style.flex = '';
+          inner.style.height = '';
+        }
+      }
+
+      // ── Display modes (same three as the timetable page) ──────────────────
+
+      function setDisplayMode(mode) {
+        document.body.classList.remove('mode-eco', 'mode-gray', 'mode-color');
+        document.body.classList.add('mode-' + mode);
+        ['eco', 'gray', 'color'].forEach(function (m) {
+          const btn = document.getElementById('mode-btn-' + m);
+          if (btn) btn.classList.toggle('active', m === mode);
+        });
+      }
+
+      // This sheet gets reprinted every week, so start on the low-ink look
+      setDisplayMode('eco');
+
+      function layout() {
+        const inner = document.querySelector('.page-frame-inner');
+        inner.style.transform = 'none';
+        inner.style.flex = '';
+        inner.style.height = '';
+        fitHeaderText();
+        fillOpenSlots();
+        fitToPage();
+      }
+
+      if (document.fonts) document.fonts.ready.then(layout);
+      window.addEventListener('load', layout);
+      window.addEventListener('resize', layout);
+      window.addEventListener('beforeprint', layout);
+    </script>
+  </body>
+</html>

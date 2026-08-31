@@ -11,6 +11,7 @@ Plain HTML/CSS/JS — no build system, no dependencies except `html2canvas` (CDN
 - `index.html` — page structure and all timetable sections
 - `script.js` — data fetching, layout logic, event navigation
 - `styles.css` — A4 layout, print styles, compact multi-day styles
+- `progress.html` — standalone A4 tracker for the מבצע תפילה בציבור; reuses `styles.css` page chrome, data lives in the `OCCASIONS` array inside the file (append one entry per Shabbat/Yom Tov, totals and ranking are derived)
 - `assets/` — logo and background images
 
 ## Key concepts
