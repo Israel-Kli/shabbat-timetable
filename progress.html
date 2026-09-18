@@ -70,24 +70,31 @@
         color: #1a2d4d;
         padding: 3px 2px;
         border-bottom: 2px solid #1a2d4d;
-        vertical-align: bottom;
+        vertical-align: middle;
       }
 
       .trk-table th .trk-th-date {
         display: block;
         font-size: 13px;
+        line-height: 16px;
+        height: 16px;
         white-space: nowrap;
       }
 
       .trk-table th .trk-th-parasha {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 26px;
         font-size: 10px;
+        line-height: 13px;
         font-weight: 400;
         color: #6b6b6b;
+        text-align: center;
       }
 
       .trk-table td {
-        padding: 2px;
+        padding: 1px 2px;
         border-bottom: 1px solid rgba(0, 0, 0, 0.09);
       }
 
@@ -104,7 +111,7 @@
       }
 
       .trk-name {
-        width: 190px;
+        width: 160px;
         text-align: right;
         font-size: 15px;
         font-weight: 500;
@@ -132,11 +139,12 @@
       }
 
       .trk-total {
-        width: 42px;
+        width: 104px;
         text-align: center;
+        white-space: nowrap;
       }
 
-      .trk-total span {
+      .trk-total .trk-num {
         display: inline-block;
         min-width: 26px;
         padding: 1px 4px;
@@ -150,45 +158,21 @@
         print-color-adjust: exact;
       }
 
-      /* Stamp-card track: 25 slots, one per opportunity in the campaign */
-      .trk-track-cell {
-        width: 220px;
-      }
-
-      .trk-track-wrap {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .trk-track {
-        display: flex;
-        flex-direction: row;
-      }
-
-      .trk-slot {
-        width: 6px;
-        height: 13px;
-        border: 1px solid #c8bfa6;
-        background: #fdfcf8;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      .trk-slot.filled {
-        background: #e0b700;
-        border-color: #8a6d00;
-      }
-
-      .trk-slot.tier {
-        border-inline-end: 2px solid #1a2d4d;
-      }
-
-      .trk-gap {
-        font-size: 11px;
+      /* Sits beside the total badge — a second line here would double every row */
+      .trk-total .trk-gap {
+        display: inline-block;
+        margin-inline-start: 5px;
+        font-size: 10px;
         font-weight: 700;
         color: #7a5c00;
         white-space: nowrap;
+      }
+
+      /* Edges line up with the stats and motivation boxes; the date columns
+         win their pixels back from the inner padding instead */
+      .trk-table-section {
+        margin: 4px 14px;
+        padding: 5px 8px;
       }
 
       /* Open slots: as many as fit under the last real participant */
@@ -205,7 +189,7 @@
         color: #96793a;
       }
 
-      .trk-invite .trk-total span {
+      .trk-invite .trk-total .trk-num {
         background: transparent;
         color: #96793a;
         border: 1.5px dashed #d4a900;
@@ -213,29 +197,6 @@
 
       .trk-invite .trk-gap {
         color: #96793a;
-      }
-
-      .trk-ruler {
-        display: flex;
-        flex-direction: row;
-        height: 14px;
-      }
-
-      .trk-ruler-slot {
-        width: 6px;
-        position: relative;
-      }
-
-      .trk-ruler-slot span {
-        position: absolute;
-        bottom: 0;
-        right: 50%;
-        transform: translateX(50%);
-        font-family: 'Rubik', sans-serif;
-        font-size: 9px;
-        font-weight: 700;
-        color: #1a2d4d;
-        white-space: nowrap;
       }
 
       .trk-motivation {
@@ -293,13 +254,13 @@
         border-color: #777;
       }
 
-      body.mode-eco .trk-total span {
+      body.mode-eco .trk-total .trk-num {
         background: white;
         color: #222;
         border: 1.5px solid #666;
       }
 
-      body.mode-eco .trk-invite .trk-total span {
+      body.mode-eco .trk-invite .trk-total .trk-num {
         border-style: dashed;
       }
 
@@ -309,11 +270,6 @@
 
       body.mode-eco .trk-invite td {
         background: none;
-      }
-
-      body.mode-eco .trk-slot.filled {
-        background: #555;
-        border-color: #333;
       }
 
       .trk-note {
@@ -330,9 +286,9 @@
       <button onclick="location.href='index.html'">↩ לוח זמני התפילות</button>
       <div class="mode-switcher" role="group" aria-label="מצב תצוגה">
         <span class="mode-switcher-label">מצב תצוגה:</span>
-        <button type="button" class="mode-btn active" id="mode-btn-eco" onclick="setDisplayMode('eco')" title="חיסכון מרבי בדיו — גווני אפור ללא עיצוב">🌿 חיסכון</button>
+        <button type="button" class="mode-btn" id="mode-btn-eco" onclick="setDisplayMode('eco')" title="חיסכון מרבי בדיו — גווני אפור ללא עיצוב">🌿 חיסכון</button>
         <button type="button" class="mode-btn" id="mode-btn-gray" onclick="setDisplayMode('gray')" title="גווני אפור עם עיצוב מלא ומרקמים">🖤 אפור עשיר</button>
-        <button type="button" class="mode-btn" id="mode-btn-color" onclick="setDisplayMode('color')" title="תצוגה צבעונית מלאה">🎨 צבעוני</button>
+        <button type="button" class="mode-btn active" id="mode-btn-color" onclick="setDisplayMode('color')" title="תצוגה צבעונית מלאה">🎨 צבעוני</button>
       </div>
     </div>
 
@@ -385,7 +341,7 @@
             </div>
           </div>
 
-          <div class="section">
+          <div class="section trk-table-section">
             <div class="section-title">טבלת המשתתפים</div>
             <table class="trk-table">
               <thead id="trk-head"></thead>
@@ -416,6 +372,7 @@
       // ── Data ──────────────────────────────────────────────────────────────
       // To update: append one entry per Shabbat / Yom Tov, with the names of
       // everyone who met the conditions. Everything else is derived.
+      // For a Yom Tov (no parasha), add label: '...' used in the update line.
 
       const TOTAL_OCCASIONS = 25; // מט״ו באב ועד כ״ד טבת
       const TIERS = [10, 15, 20];
@@ -478,6 +435,7 @@
             'לוי פורסט',
             'משיח פרידמן',
             'עמוס גבזו',
+            'מאיר ג׳ובני',
           ],
         },
         {
@@ -489,6 +447,36 @@
             'רוני פיצחדזה',
             'משה נתנאל קרולינסקי',
             'שלומי שמעיה',
+          ],
+        },
+        {
+          date: 'א׳ תשרי',
+          parasha: 'ראש השנה',
+          label: 'ראש השנה · א׳ תשרי',
+          names: [
+            'יוסף יצחק טאלער',
+            'רוני פיצחדזה',
+            'משיח פרידמן',
+            'מאיר ג׳ובני',
+            'אברהם וינר',
+            'ישראל נח וינר',
+            'מרדכי גיל',
+          ],
+        },
+        {
+          date: 'ב׳ תשרי',
+          parasha: 'ראש השנה',
+          label: 'ראש השנה · ב׳ תשרי',
+          names: [
+            'יוסף יצחק טאלער',
+            'רוני פיצחדזה',
+            'משיח פרידמן',
+            'מאיר ג׳ובני',
+            'אברהם וינר',
+            'ישראל נח וינר',
+            'לוי בליניצקי',
+            'אביתר כהן',
+            'שלום שניאורסון',
           ],
         },
       ];
@@ -515,37 +503,17 @@
       const last = OCCASIONS[OCCASIONS.length - 1];
 
       document.getElementById('trk-last').textContent =
-        'שבת פרשת ' + last.parasha + ', ' + last.date;
+        last.label || 'שבת פרשת ' + last.parasha + ', ' + last.date;
       document.getElementById('stat-total').textContent = TOTAL_OCCASIONS;
       document.getElementById('stat-done').textContent = OCCASIONS.length;
       document.getElementById('stat-left').textContent = remaining;
       document.getElementById('stat-people').textContent = rows.length;
-
-      function trackHtml(weeks) {
-        let html = '<div class="trk-track">';
-        for (let slot = 1; slot <= TOTAL_OCCASIONS; slot++) {
-          const filled = slot <= weeks.size ? ' filled' : '';
-          const tier = TIERS.includes(slot) ? ' tier' : '';
-          html += '<div class="trk-slot' + filled + tier + '"></div>';
-        }
-        return html + '</div>';
-      }
 
       function gapText(total) {
         const nextTier = TIERS.find((t) => t > total);
         if (!nextTier) return 'הגיע ל-20!';
         return 'עוד ' + (nextTier - total) + ' ל-' + nextTier;
       }
-
-      let rulerHtml = '<div class="trk-ruler">';
-      const tierPrize = { 10: '300 ₪', 15: '800 ₪', 20: '2,000 ₪' };
-      for (let slot = 1; slot <= TOTAL_OCCASIONS; slot++) {
-        rulerHtml +=
-          '<div class="trk-ruler-slot">' +
-          (tierPrize[slot] ? '<span>' + tierPrize[slot] + '</span>' : '') +
-          '</div>';
-      }
-      rulerHtml += '</div>';
 
       document.getElementById('trk-head').innerHTML =
         '<tr>' +
@@ -561,7 +529,6 @@
           )
           .join('') +
         '<th class="trk-total">סה״כ</th>' +
-        '<th class="trk-track-cell">' + rulerHtml + '</th>' +
         '</tr>';
 
       document.getElementById('trk-body').innerHTML = rows
@@ -577,11 +544,8 @@
             '<tr class="' + (row.total === leadTotal ? 'trk-lead' : '') + '">' +
             '<td class="trk-name">' + row.name + (row.total === leadTotal ? ' 🏆' : '') + '</td>' +
             marks +
-            '<td class="trk-total"><span>' + row.total + '</span></td>' +
-            '<td class="trk-track-cell"><div class="trk-track-wrap">' +
-            trackHtml(row.weeks) +
-            '<span class="trk-gap">' + gapText(row.total) + '</span>' +
-            '</div></td>' +
+            '<td class="trk-total"><span class="trk-num">' + row.total + '</span>' +
+            '<span class="trk-gap">' + gapText(row.total) + '</span></td>' +
             '</tr>'
           );
         })
@@ -638,11 +602,8 @@
           '<tr class="trk-invite">' +
           '<td class="trk-name">כאן יכול להיות שמך</td>' +
           shownOccasions.map(() => '<td class="trk-miss">·</td>').join('') +
-          '<td class="trk-total"><span>0</span></td>' +
-          '<td class="trk-track-cell"><div class="trk-track-wrap">' +
-          trackHtml(new Set()) +
-          '<span class="trk-gap">' + gapText(0) + '</span>' +
-          '</div></td>' +
+          '<td class="trk-total"><span class="trk-num">0</span>' +
+          '<span class="trk-gap">' + gapText(0) + '</span></td>' +
           '</tr>'
         );
       }
@@ -704,8 +665,8 @@
         });
       }
 
-      // This sheet gets reprinted every week, so start on the low-ink look
-      setDisplayMode('eco');
+      // Default to the full-color look
+      setDisplayMode('color');
 
       function layout() {
         const inner = document.querySelector('.page-frame-inner');
