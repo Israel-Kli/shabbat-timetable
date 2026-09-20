@@ -79,9 +79,53 @@ function setHitvaadutRowVisible(visible) {
   if (row) row.hidden = !visible;
 }
 
+function setMusafRowVisible(visible, noteText) {
+  const row = document.getElementById('musaf-row');
+  if (row) row.hidden = !visible;
+  const timeEl = document.getElementById('musaf-time');
+  if (visible && timeEl != null && noteText != null) timeEl.textContent = noteText;
+}
+
+function setNeilaRowVisible(visible, timeText) {
+  const row = document.getElementById('neila-row');
+  if (row) row.hidden = !visible;
+  const timeEl = document.getElementById('neila-time');
+  if (visible && timeEl != null && timeText != null) timeEl.textContent = timeText;
+}
+
+function setNiggunimRowVisible(visible) {
+  const row = document.getElementById('niggunim-row');
+  if (row) row.hidden = !visible;
+}
+
+function setPromoRowVisible(visible, includeChocolates = true) {
+  const promo = document.getElementById('promo-row');
+  if (promo) {
+    promo.classList.toggle('promo-hidden', !visible);
+    if (visible) promo.style.removeProperty('display');
+    else promo.style.setProperty('display', 'none', 'important');
+  }
+  const choc = document.getElementById('promo-chocolates-section');
+  if (choc) choc.style.display = includeChocolates ? '' : 'none';
+  const condition = document.getElementById('promo-campaign-condition');
+  if (condition) {
+    condition.innerHTML = includeChocolates
+      ? 'מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>. המתפללים עם הציבור בתנאים דלעיל:'
+      : 'מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>.<br>מי שמתפלל עם המניין, <strong>מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה</strong>:';
+  }
+}
+
+function isYomKippur(title, hebrew) {
+  const t = (title || '').trim();
+  const h = stripNikkud(hebrew || '');
+  return /^yom\s*kippur$/i.test(t) || /יום\s*כיפור/i.test(h) || /יום\s*הכיפורים/i.test(h);
+}
+
 const NIGGUNIM_LABEL_BASE = 'סדר ניגונים · חזרת דא״ח';
 
 function resetNiggunimRow() {
+  const row = document.getElementById('niggunim-row');
+  if (row) row.hidden = false;
   const labelEl = document.getElementById('niggunim-label');
   if (labelEl) labelEl.textContent = NIGGUNIM_LABEL_BASE;
   const noteEl = document.getElementById('niggunim-note');
@@ -183,8 +227,15 @@ function applyShabbatTitles() {
   if (tf) tf.textContent = 'זמני תפילות לשבת ';
   const erev = document.getElementById('section-erev-title');
   if (erev) erev.textContent = 'ערב שבת';
+  const erevMincha = document.getElementById('erev-mincha-label');
+  if (erevMincha) erevMincha.textContent = 'מנחה';
   const day = document.getElementById('section-day-title');
   if (day) day.textContent = 'שבת';
+  const chassidutLabel = document.getElementById('chassidut-label');
+  if (chassidutLabel) {
+    chassidutLabel.textContent = 'חסידות עם מורנו הרב טאלער';
+    chassidutLabel.style.fontSize = '';
+  }
   const motzei = document.getElementById('motzei-label');
   if (motzei) motzei.textContent = 'ערבית מוצאי שבת';
   const havZman = document.getElementById('havdalah-zman-label');
@@ -194,6 +245,10 @@ function applyShabbatTitles() {
   const erevArvit = document.getElementById('friday-arvit');
   if (erevArvit) erevArvit.textContent = 'בהמשך למנחה';
   setShabbatKidsPartyRowVisible(true);
+  setMusafRowVisible(false);
+  setNeilaRowVisible(false);
+  setNiggunimRowVisible(true);
+  setPromoRowVisible(true);
 }
 
 function applyYomTovTitles() {
@@ -201,15 +256,28 @@ function applyYomTovTitles() {
   if (tf) tf.textContent = 'זמני תפילות ל';
   const erev = document.getElementById('section-erev-title');
   if (erev) erev.textContent = 'ערב חג';
+  const erevMincha = document.getElementById('erev-mincha-label');
+  if (erevMincha) erevMincha.textContent = 'מנחה';
   const day = document.getElementById('section-day-title');
   if (day) day.textContent = 'יום טוב';
+  const chassidutLabel = document.getElementById('chassidut-label');
+  if (chassidutLabel) {
+    chassidutLabel.textContent = 'חסידות עם מורנו הרב טאלער';
+    chassidutLabel.style.fontSize = '';
+  }
   const motzei = document.getElementById('motzei-label');
   if (motzei) motzei.textContent = 'ערבית מוצאי יום טוב';
   const havZman = document.getElementById('havdalah-zman-label');
   if (havZman) havZman.textContent = 'צאת החג';
   const erevEvening = document.getElementById('erev-evening-label');
   if (erevEvening) erevEvening.textContent = 'ערבית של יום טוב';
+  const erevArvit = document.getElementById('friday-arvit');
+  if (erevArvit) erevArvit.textContent = 'בהמשך למנחה';
   setShabbatKidsPartyRowVisible(false);
+  setMusafRowVisible(false);
+  setNeilaRowVisible(false);
+  setNiggunimRowVisible(true);
+  setPromoRowVisible(true);
 }
 
 function setErevEveningLabelForYomTov(erevDateStr) {
@@ -713,13 +781,62 @@ async function loadYomTovData(event) {
     const motzeiArvitEl = document.getElementById('motzei-arvit');
     if (motzeiArvitEl) motzeiArvitEl.textContent = extractTime(yomTovEnd.date);
 
-    resetNiggunimRow();
+    const yomKippur = isYomKippur(holidayItem.title, holidayItem.hebrew);
+    if (yomKippur) {
+      const erevTitle = document.getElementById('section-erev-title');
+      if (erevTitle) erevTitle.textContent = 'ערב יום כיפור';
+      const dayTitle = document.getElementById('section-day-title');
+      if (dayTitle) dayTitle.textContent = 'יום כיפור';
+      const motzei = document.getElementById('motzei-label');
+      if (motzei) motzei.textContent = 'ערבית מוצאי יום כיפור';
+
+      const erevMinchaLabel = document.getElementById('erev-mincha-label');
+      if (erevMinchaLabel) erevMinchaLabel.textContent = 'כל נדרי';
+      if (fridayMinchaEl) fridayMinchaEl.textContent = '18:40';
+
+      const erevEvening = document.getElementById('erev-evening-label');
+      if (erevEvening) erevEvening.textContent = 'ערבית';
+      const erevArvit = document.getElementById('friday-arvit');
+      if (erevArvit) erevArvit.textContent = 'בהמשך';
+
+      if (chassidutLabelEl) {
+        chassidutLabelEl.textContent = 'חסידות והכנה לתפילה עם מורנו הרב טאלער';
+        chassidutLabelEl.style.fontSize = '24px';
+      }
+      if (chassidutTimeEl) chassidutTimeEl.textContent = '9:00';
+
+      if (shacharitTimeEl) shacharitTimeEl.textContent = '10:00';
+
+      setYizkorRowVisible(true, '12:30');
+      setMusafRowVisible(true, 'בהמשך לשחרית');
+
+      if (shabbatMinchaEl) shabbatMinchaEl.textContent = '17:00';
+
+      setNeilaRowVisible(true, '18:00');
+      setNiggunimRowVisible(false);
+
+      if (motzeiArvitEl) motzeiArvitEl.textContent = '19:15';
+
+      setPromoRowVisible(true, false);
+      setHitvaadutRowVisible(false);
+      setShabbatKidsPartyRowVisible(false);
+      setTaaluchaRowVisible(false);
+      setRebbVideoRowVisible(false);
+    } else {
+      resetNiggunimRow();
+      setMusafRowVisible(false);
+      setNeilaRowVisible(false);
+      setPromoRowVisible(true);
+    }
   } catch (error) {
     console.error('Error loading Yom Tov data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
     setRebbVideoRowVisible(false);
     setKiddushLevanaRowVisible(false);
     setYizkorRowVisible(false);
+    setMusafRowVisible(false);
+    setNeilaRowVisible(false);
+    setPromoRowVisible(true);
     setTaaluchaRowVisible(false);
     setHitvaadutRowVisible(true);
     setSelichotRowsVisible(false);

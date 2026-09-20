@@ -618,6 +618,10 @@ body.capture-safe-export .logo {
   background: transparent !important;
   box-shadow: none !important;
 }
+.times-table tr[id^="promo-row"].promo-hidden,
+.times-table-compact tr[id^="promo-row"].promo-hidden {
+  display: none !important;
+}
 
 /* Compact tables are split across multiple <table> elements by decorative-line
    dividers. JS adds .stripe-even-start to continuation tables whose first
@@ -1011,6 +1015,10 @@ body.capture-safe-export .logo {
     display: table-row !important;
     background: transparent !important;
     box-shadow: none !important;
+  }
+  .times-table tr[id^="promo-row"].promo-hidden,
+  .times-table-compact tr[id^="promo-row"].promo-hidden {
+    display: none !important;
   }
 
   .times-table-compact.stripe-even-start tr:nth-child(even of :not([hidden])) {

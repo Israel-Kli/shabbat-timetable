@@ -139,7 +139,7 @@
             <table class="times-table">
               <tr>
                 <td class="label-cell">
-                  <span class="label-editable" contenteditable="true">מנחה</span>
+                  <span class="label-editable" id="erev-mincha-label" contenteditable="true">מנחה</span>
                 </td>
                 <td class="time-cell">
                   <span class="time-value" id="friday-mincha" contenteditable="true">...</span>
@@ -187,12 +187,14 @@
               <tr id="promo-row" hidden>
                 <td colspan="2" style="padding:6px 12px;">
                   <div style="padding:10px 16px;background:linear-gradient(135deg,#fff8e1,#fff3c4);border:2px solid #f5c518;border-radius:10px;font-size:16px;line-height:1.55;color:#5d4200;text-align:center;">
-                    <strong style="font-size:20px;"><span style="margin:0 8px;">🍫</span>מבצע תפילה בציבור<span style="margin:0 8px;">🍫</span></strong><br>
-                    מי שמתפלל עם המניין, <strong>מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה</strong> —<br>
-                    מקבל <strong>חפיסת שוקולד פרימיום</strong> אישית · עד גמר המלאי
-                    <div style="margin:8px 0 6px;border-top:1px dashed #d4a900;"></div>
+                    <div id="promo-chocolates-section">
+                      <strong style="font-size:20px;"><span style="margin:0 8px;">🍫</span>מבצע תפילה בציבור<span style="margin:0 8px;">🍫</span></strong><br>
+                      מי שמתפלל עם המניין, <strong>מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה</strong> —<br>
+                      מקבל <strong>חפיסת שוקולד פרימיום</strong> אישית · עד גמר המלאי
+                      <div style="margin:8px 0 6px;border-top:1px dashed #d4a900;"></div>
+                    </div>
                     <strong style="font-size:19px;"><span style="margin:0 8px;">✈️</span>מבצע ענק — עד כ״ד טבת!<span style="margin:0 8px;">✈️</span></strong><br>
-                    מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>. המתפללים עם הציבור בתנאים דלעיל:
+                    <span id="promo-campaign-condition">מט״ו באב ועד כ״ד טבת יש <strong>25 שבתות וימים טובים</strong>. המתפללים עם הציבור בתנאים דלעיל:</span>
                     <div style="margin-top:6px;">
                       <div style="display:inline-block;width:31%;vertical-align:top;background:#fffdf2;border:1.5px solid #e0b700;border-radius:8px;padding:5px 6px;box-sizing:border-box;">
                         <strong style="font-size:18px;">20 פעמים</strong><br>
@@ -218,6 +220,14 @@
                 </td>
                 <td class="time-cell">
                   <span class="time-value" id="yizkor-time" contenteditable="true">12:00</span>
+                </td>
+              </tr>
+              <tr id="musaf-row" hidden>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">מוסף</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value note-text" id="musaf-time" contenteditable="true">בהמשך לשחרית</span>
                 </td>
               </tr>
               <tr id="shabbat-kids-party-row">
@@ -249,7 +259,15 @@
                   <span class="time-value" id="shabbat-mincha" contenteditable="true">...</span>
                 </td>
               </tr>
-              <tr>
+              <tr id="neila-row" hidden>
+                <td class="label-cell">
+                  <span class="label-editable" contenteditable="true">נעילה</span>
+                </td>
+                <td class="time-cell">
+                  <span class="time-value" id="neila-time" contenteditable="true">18:20</span>
+                </td>
+              </tr>
+              <tr id="niggunim-row">
                 <td class="label-cell">
                   <span class="label-editable" id="niggunim-label" contenteditable="true">סדר ניגונים · חזרת דא״ח</span>
                 </td>
