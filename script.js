@@ -807,7 +807,7 @@ async function loadYomTovData(event) {
 
       if (shacharitTimeEl) shacharitTimeEl.textContent = '10:00';
 
-      setYizkorRowVisible(true, '12:30');
+      setYizkorRowVisible(true, '13:00');
       setMusafRowVisible(true, 'בהמשך לשחרית');
 
       if (shabbatMinchaEl) shabbatMinchaEl.textContent = '17:00';
@@ -817,7 +817,7 @@ async function loadYomTovData(event) {
 
       if (motzeiArvitEl) motzeiArvitEl.textContent = '19:15';
 
-      setPromoRowVisible(true, false);
+      setPromoRowVisible(false);
       setHitvaadutRowVisible(false);
       setShabbatKidsPartyRowVisible(false);
       setTaaluchaRowVisible(false);
