@@ -43,7 +43,7 @@ Plain HTML/CSS/JS — no build system, no dependencies except `html2canvas` (CDN
 
 | Event | Time |
 |---|---|
-| חסידות עם מורנו הרב טאלער | 9:00 |
+| חסידות עם הרב טאלער | 9:00 |
 | שחרית (Shabbat/Yom Tov) | 10:00 |
 | שחרית (Yom Tov on Friday) | 10:30 |
 | מנחה | sunset |

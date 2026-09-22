@@ -233,7 +233,7 @@ function applyShabbatTitles() {
   if (day) day.textContent = 'שבת';
   const chassidutLabel = document.getElementById('chassidut-label');
   if (chassidutLabel) {
-    chassidutLabel.textContent = 'חסידות עם מורנו הרב טאלער';
+    chassidutLabel.textContent = 'חסידות עם הרב טאלער';
     chassidutLabel.style.fontSize = '';
   }
   const motzei = document.getElementById('motzei-label');
@@ -262,7 +262,7 @@ function applyYomTovTitles() {
   if (day) day.textContent = 'יום טוב';
   const chassidutLabel = document.getElementById('chassidut-label');
   if (chassidutLabel) {
-    chassidutLabel.textContent = 'חסידות עם מורנו הרב טאלער';
+    chassidutLabel.textContent = 'חסידות עם הרב טאלער';
     chassidutLabel.style.fontSize = '';
   }
   const motzei = document.getElementById('motzei-label');
@@ -763,7 +763,7 @@ async function loadYomTovData(event) {
 
     const chassidutLabelEl = document.getElementById('chassidut-label');
     const chassidutTimeEl = document.getElementById('chassidut-time');
-    if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם מורנו הרב טאלער';
+    if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם הרב טאלער';
     if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
 
     const shabbatMinchaEl = document.getElementById('shabbat-mincha');
@@ -800,7 +800,7 @@ async function loadYomTovData(event) {
       if (erevArvit) erevArvit.textContent = 'בהמשך';
 
       if (chassidutLabelEl) {
-        chassidutLabelEl.textContent = 'חסידות והכנה לתפילה עם מורנו הרב טאלער';
+        chassidutLabelEl.textContent = 'חסידות והכנה לתפילה עם הרב טאלער';
         chassidutLabelEl.style.fontSize = '24px';
       }
       if (chassidutTimeEl) chassidutTimeEl.textContent = '9:00';
@@ -1096,7 +1096,7 @@ async function loadShabbatEvent(event) {
       if (chassidutLabelEl) chassidutLabelEl.textContent = 'אמירת תהילים בציבור';
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutMevarchim;
     } else {
-      if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם מורנו הרב טאלער';
+      if (chassidutLabelEl) chassidutLabelEl.textContent = 'חסידות עם הרב טאלער';
       if (chassidutTimeEl) chassidutTimeEl.textContent = CONFIG.chassidutDefault;
     }
 
