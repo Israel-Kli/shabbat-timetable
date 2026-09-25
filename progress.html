@@ -73,24 +73,45 @@
         vertical-align: middle;
       }
 
-      .trk-table th .trk-th-date {
-        display: block;
-        font-size: 13px;
+      /* 25 date columns only fit side by side with the labels turned upright */
+      .trk-table th.trk-col {
+        padding: 3px 0;
+        vertical-align: bottom;
+      }
+
+      .trk-th-vert {
+        margin: 0 auto;
+        writing-mode: vertical-rl;
+        transform: rotate(180deg);
+        height: 112px;
         line-height: 16px;
-        height: 16px;
+        text-align: end;
         white-space: nowrap;
       }
 
-      .trk-table th .trk-th-parasha {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 26px;
-        font-size: 10px;
-        line-height: 13px;
+      .trk-th-date {
+        font-size: 12px;
+      }
+
+      .trk-th-parasha {
+        margin-inline-start: 5px;
+        font-size: 11px;
         font-weight: 400;
         color: #6b6b6b;
-        text-align: center;
+      }
+
+      .trk-table th.trk-upcoming {
+        color: #9aa3b2;
+      }
+
+      .trk-table th.trk-upcoming .trk-th-parasha {
+        color: #b0b0b0;
+      }
+
+      .trk-table td.trk-upcoming {
+        background: rgba(0, 0, 0, 0.025);
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       .trk-table td {
@@ -268,7 +289,8 @@
         background: none;
       }
 
-      body.mode-eco .trk-invite td {
+      body.mode-eco .trk-invite td,
+      body.mode-eco .trk-table td.trk-upcoming {
         background: none;
       }
 
@@ -370,13 +392,12 @@
 
     <script>
       // ── Data ──────────────────────────────────────────────────────────────
-      // To update: append one entry per Shabbat / Yom Tov, with the names of
-      // everyone who met the conditions. Everything else is derived.
+      // Every Shabbat / Yom Tov of the campaign (מט״ו באב ועד כ״ד טבת) is listed.
+      // To update: add `names` (everyone who met the conditions) to the next
+      // occasion; entries without `names` are still to come. Everything else is derived.
       // For a Yom Tov (no parasha), add label: '...' used in the update line.
 
-      const TOTAL_OCCASIONS = 25; // מט״ו באב ועד כ״ד טבת
       const TIERS = [10, 15, 20];
-      const MAX_DATE_COLUMNS = 8; // older columns drop off the grid; totals still count them
 
       const OCCASIONS = [
         {
@@ -504,15 +525,29 @@
             'לוי בליניצקי',
           ],
         },
+        { date: 'ט״ו תשרי', parasha: 'סוכות', label: 'סוכות · ט״ו תשרי' },
+        { date: 'כ״ב תשרי', parasha: 'שמיני עצרת', label: 'שמיני עצרת · כ״ב תשרי' },
+        { date: 'כ״ט תשרי', parasha: 'בראשית' },
+        { date: 'ו׳ חשון', parasha: 'נח' },
+        { date: 'י״ג חשון', parasha: 'לך לך' },
+        { date: 'כ׳ חשון', parasha: 'וירא' },
+        { date: 'כ״ז חשון', parasha: 'חיי שרה' },
+        { date: 'ד׳ כסלו', parasha: 'תולדות' },
+        { date: 'י״א כסלו', parasha: 'ויצא' },
+        { date: 'י״ח כסלו', parasha: 'וישלח' },
+        { date: 'כ״ה כסלו', parasha: 'וישב' },
+        { date: 'ב׳ טבת', parasha: 'מקץ' },
+        { date: 'ט׳ טבת', parasha: 'ויגש' },
+        { date: 'ט״ז טבת', parasha: 'ויחי' },
+        { date: 'כ״ג טבת', parasha: 'שמות' },
       ];
 
       // ── Render ────────────────────────────────────────────────────────────
 
-      const shownOccasions = OCCASIONS.slice(-MAX_DATE_COLUMNS);
-      const shownOffset = OCCASIONS.length - shownOccasions.length;
+      const done = OCCASIONS.filter((o) => o.names);
 
       const attendance = new Map(); // name -> Set of occasion indices
-      OCCASIONS.forEach((occasion, index) => {
+      done.forEach((occasion, index) => {
         occasion.names.forEach((name) => {
           if (!attendance.has(name)) attendance.set(name, new Set());
           attendance.get(name).add(index);
@@ -524,13 +559,13 @@
         .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'he'));
 
       const leadTotal = rows.length ? rows[0].total : 0;
-      const remaining = TOTAL_OCCASIONS - OCCASIONS.length;
-      const last = OCCASIONS[OCCASIONS.length - 1];
+      const remaining = OCCASIONS.length - done.length;
+      const last = done[done.length - 1];
 
       document.getElementById('trk-last').textContent =
         last.label || 'שבת פרשת ' + last.parasha + ', ' + last.date;
-      document.getElementById('stat-total').textContent = TOTAL_OCCASIONS;
-      document.getElementById('stat-done').textContent = OCCASIONS.length;
+      document.getElementById('stat-total').textContent = OCCASIONS.length;
+      document.getElementById('stat-done').textContent = done.length;
       document.getElementById('stat-left').textContent = remaining;
       document.getElementById('stat-people').textContent = rows.length;
 
@@ -543,28 +578,25 @@
       document.getElementById('trk-head').innerHTML =
         '<tr>' +
         '<th class="trk-name">שם המשתתף</th>' +
-        shownOccasions
-          .map(
-            (o) =>
-              '<th><span class="trk-th-date">' +
-              o.date +
-              '</span><span class="trk-th-parasha">' +
-              o.parasha +
-              '</span></th>'
-          )
-          .join('') +
+        OCCASIONS.map(
+          (o) =>
+            '<th class="trk-col' + (o.names ? '' : ' trk-upcoming') + '"><div class="trk-th-vert">' +
+            '<span class="trk-th-date">' + o.date + '</span>' +
+            '<span class="trk-th-parasha">' + o.parasha + '</span>' +
+            '</div></th>'
+        ).join('') +
         '<th class="trk-total">סה״כ</th>' +
         '</tr>';
 
       document.getElementById('trk-body').innerHTML = rows
         .map((row) => {
-          const marks = shownOccasions
-            .map((_, i) =>
-              row.weeks.has(shownOffset + i)
+          const marks = OCCASIONS.map((o, i) =>
+            !o.names
+              ? '<td class="trk-upcoming"></td>'
+              : row.weeks.has(i)
                 ? '<td class="trk-check">✓</td>'
                 : '<td class="trk-miss">·</td>'
-            )
-            .join('');
+          ).join('');
           return (
             '<tr class="' + (row.total === leadTotal ? 'trk-lead' : '') + '">' +
             '<td class="trk-name">' + row.name + (row.total === leadTotal ? ' 🏆' : '') + '</td>' +
@@ -587,26 +619,6 @@
         stillOpen +
         ' וכל מי שמתפלל עם המניין, מסיים יחד עם החזן ״נשמת כל חי״ ונשאר עד סוף התפילה, מקבל גם חפיסת שוקולד פרימיום בכל שבת.';
 
-      // ── Header text that survives more date columns ───────────────────────
-
-      // Each new Shabbat narrows the date columns, so shrink the header type
-      // until the longest label fits instead of letting it spill over.
-      function fitHeaderText() {
-        const shrink = (selector, startSize, minSize) => {
-          const spans = [...document.querySelectorAll(selector)];
-          let size = startSize;
-          spans.forEach((el) => (el.style.fontSize = ''));
-          const spills = () =>
-            spans.some((el) => el.scrollWidth > el.parentElement.clientWidth - 4);
-          while (size > minSize && spills()) {
-            size -= 0.5;
-            spans.forEach((el) => (el.style.fontSize = size + 'px'));
-          }
-        };
-        shrink('.trk-th-date', 13, 9);
-        shrink('.trk-th-parasha', 10, 8);
-      }
-
       // ── Open slots ────────────────────────────────────────────────────────
 
       const MAX_OPEN_SLOTS = 6;
@@ -626,7 +638,7 @@
         return (
           '<tr class="trk-invite">' +
           '<td class="trk-name">כאן יכול להיות שמך</td>' +
-          shownOccasions.map(() => '<td class="trk-miss">·</td>').join('') +
+          OCCASIONS.map((o) => (o.names ? '<td class="trk-miss">·</td>' : '<td class="trk-upcoming"></td>')).join('') +
           '<td class="trk-total"><span class="trk-num">0</span>' +
           '<span class="trk-gap">' + gapText(0) + '</span></td>' +
           '</tr>'
@@ -698,7 +710,6 @@
         inner.style.transform = 'none';
         inner.style.flex = '';
         inner.style.height = '';
-        fitHeaderText();
         fillOpenSlots();
         fitToPage();
       }
