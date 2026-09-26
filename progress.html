@@ -567,6 +567,8 @@
         .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'he'));
 
       const leadTotal = rows.length ? rows[0].total : 0;
+      const secondTotal = rows.find((r) => r.total < leadTotal)?.total;
+      const medal = (total) => (total === leadTotal ? ' 🏆' : total === secondTotal ? ' 🥈' : '');
       const remaining = OCCASIONS.length - done.length;
       const last = done[done.length - 1];
 
@@ -607,7 +609,7 @@
           ).join('');
           return (
             '<tr class="' + (row.total === leadTotal ? 'trk-lead' : '') + '">' +
-            '<td class="trk-name">' + row.name + (row.total === leadTotal ? ' 🏆' : '') + '</td>' +
+            '<td class="trk-name">' + row.name + medal(row.total) + '</td>' +
             marks +
             '<td class="trk-total"><span class="trk-num">' + row.total + '</span>' +
             '<span class="trk-gap">' + gapText(row.total) + '</span></td>' +
