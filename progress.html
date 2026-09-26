@@ -567,8 +567,8 @@
         .sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'he'));
 
       const leadTotal = rows.length ? rows[0].total : 0;
-      const secondTotal = rows.find((r) => r.total < leadTotal)?.total;
-      const medal = (total) => (total === leadTotal ? ' 🏆' : total === secondTotal ? ' 🥈' : '');
+      const podium = [...new Set(rows.map((r) => r.total))].slice(0, 3);
+      const medal = (total) => ['', ' 🏆', ' 🥈', ' 🥉'][podium.indexOf(total) + 1];
       const remaining = OCCASIONS.length - done.length;
       const last = done[done.length - 1];
 
