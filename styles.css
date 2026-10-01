@@ -1433,3 +1433,97 @@ body.mode-gray .section-compact .section-title {
   font-size: 22px;
 }
 
+
+/* ─── Green "campaign applies" badge next to a prayer ──────────────────────── */
+
+.promo-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: 12px;
+  padding: 1px 10px 1px 8px;
+  vertical-align: middle;
+  font-family: 'Heebo', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #fff;
+  background: #22a447;
+  border-radius: 999px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ─── Simchat Torah festive look ─────────────────────────────────────────────
+   Decorations show only while the Simchat Torah layout is active (body.festive-st
+   is toggled by showLayout). The archive snapshot sets the same body classes.
+   Eco mode drops them; gray mode greys them through the page-frame filter. */
+
+.st-festive {
+  display: none;
+}
+
+body.festive-st .page-frame {
+  isolation: isolate;
+}
+
+body.festive-st .st-festive {
+  display: block;
+}
+
+.st-confetti {
+  position: absolute;
+  top: 150px;
+  left: 26px;
+  right: 26px;
+  bottom: 26px;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='260'><g opacity='.55'><rect x='90' y='250' width='9' height='4' rx='1' fill='%23f4a300' transform='rotate(101 90 250)'/><circle cx='174' cy='20' r='3' fill='%23e63946'/><polygon points='32,101 40,103 35,110' fill='%238338ec' transform='rotate(14 32 101)'/><rect x='240' y='137' width='9' height='4' rx='1' fill='%23f4a300' transform='rotate(9 240 137)'/><circle cx='30' cy='119' r='3' fill='%233a86ff'/><polygon points='69,31 77,33 72,40' fill='%238338ec' transform='rotate(108 69 31)'/><rect x='23' y='219' width='9' height='4' rx='1' fill='%238338ec' transform='rotate(31 23 219)'/><circle cx='250' cy='65' r='3' fill='%23ff4fa3'/><polygon points='157,250 165,252 160,259' fill='%23e63946' transform='rotate(147 157 250)'/><rect x='157' y='109' width='9' height='4' rx='1' fill='%23e63946' transform='rotate(56 157 109)'/><circle cx='19' cy='150' r='3' fill='%23f4a300'/><polygon points='115,44 123,46 118,53' fill='%238338ec' transform='rotate(30 115 44)'/><rect x='154' y='86' width='9' height='4' rx='1' fill='%238338ec' transform='rotate(46 154 86)'/><circle cx='34' cy='156' r='3' fill='%238338ec'/><polygon points='56,103 64,105 59,112' fill='%23e63946' transform='rotate(140 56 103)'/><rect x='190' y='24' width='9' height='4' rx='1' fill='%238338ec' transform='rotate(15 190 24)'/><circle cx='166' cy='60' r='3' fill='%233a86ff'/><polygon points='117,206 125,208 120,215' fill='%232a9d8f' transform='rotate(119 117 206)'/></g></svg>");
+  background-size: 260px 260px;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.st-garland {
+  height: 34px;
+  margin: 0 26px 2px;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='360' height='34' viewBox='0 0 360 34'><path d='M0 4Q30 14 60 4Q90 14 120 4Q150 14 180 4Q210 14 240 4Q270 14 300 4Q330 14 360 4' fill='none' stroke='%23b8860b' stroke-width='1.5'/><polygon points='14 7.6 46 7.6 30 31' fill='%23e63946'/><polygon points='74 7.6 106 7.6 90 31' fill='%23f4a300'/><polygon points='134 7.6 166 7.6 150 31' fill='%232a9d8f'/><polygon points='194 7.6 226 7.6 210 31' fill='%233a86ff'/><polygon points='254 7.6 286 7.6 270 31' fill='%238338ec'/><polygon points='314 7.6 346 7.6 330 31' fill='%23ff4fa3'/><circle cx='0' cy='4' r='2.5' fill='%23c9a227'/><circle cx='60' cy='4' r='2.5' fill='%23c9a227'/><circle cx='120' cy='4' r='2.5' fill='%23c9a227'/><circle cx='180' cy='4' r='2.5' fill='%23c9a227'/><circle cx='240' cy='4' r='2.5' fill='%23c9a227'/><circle cx='300' cy='4' r='2.5' fill='%23c9a227'/></svg>") repeat-x center top;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+body.festive-st:not(.mode-eco) .st-title-night::before {
+  content: '🕺 ';
+}
+
+body.festive-st:not(.mode-eco) .st-title-night::after {
+  content: ' 💃';
+}
+
+body.festive-st:not(.mode-eco) .st-title-day::before {
+  content: '📜 ';
+}
+
+body.festive-st:not(.mode-eco) .st-title-day::after {
+  content: ' 🎉';
+}
+
+body.mode-color.festive-st .layout-st .section-title {
+  background: linear-gradient(180deg, #9a66e0 0%, #7a3fc4 25%, #5a2896 60%, #411c70 100%);
+  border-color: rgba(200, 160, 255, 0.55);
+  border-bottom-color: #f4a300;
+}
+
+body.mode-color.festive-st .layout-st .times-table tr:nth-child(odd of :not([hidden])) {
+  background: rgba(244, 163, 0, 0.15);
+}
+
+body.mode-color.festive-st .main-title .parasha-value {
+  border-image: linear-gradient(90deg, #e63946, #f4a300, #2a9d8f, #3a86ff, #8338ec) 1;
+}
+
+body.mode-eco .st-festive {
+  display: none;
+}

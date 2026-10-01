@@ -1204,6 +1204,7 @@ const LAYOUT_IDS = [
 ];
 
 function showLayout(activeId) {
+  document.body.classList.toggle('festive-st', activeId === 'layout-simchat-torah');
   LAYOUT_IDS.forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.style.display = id === activeId ? '' : 'none';
