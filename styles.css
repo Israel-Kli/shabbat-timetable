@@ -1499,7 +1499,7 @@ body.festive-st:not(.mode-eco) .st-title-night::before {
 }
 
 body.festive-st:not(.mode-eco) .st-title-night::after {
-  content: ' 💃';
+  content: ' 🎶';
 }
 
 body.festive-st:not(.mode-eco) .st-title-day::before {
