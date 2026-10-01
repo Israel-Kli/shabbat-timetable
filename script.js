@@ -40,10 +40,7 @@ function setTaaluchaRowVisible(visible) {
 }
 
 function shouldIncludeHolidayInYomTovList(h) {
-  if (h.category !== 'holiday' || h.subcat !== 'major') return false;
-  if (h.yomtov) return true;
-  const t = (h.title || '').trim();
-  return /^sukkot\s*vii/i.test(t);
+  return h.category === 'holiday' && h.subcat === 'major' && !!h.yomtov;
 }
 
 // Returns true when the holiday falls on a Friday (leading directly into Shabbat).
@@ -52,20 +49,21 @@ function isYomTovOnFriday(dateStr) {
 }
 
 // Returns true for the holidays that can fall on a Friday and produce a
-// "Yom Tov into Shabbat" double-day (Shavuot in Israel, Pesach VII in Israel, etc.)
+// "Yom Tov into Shabbat" double-day (Shavuot in Israel, Pesach VII in Israel)
 function isYomTovIntoShabbatCandidate(title) {
   const t = (title || '').trim();
-  return (
-    /^shavuot$/i.test(t) ||
-    /^pesach\s*vii$/i.test(t) ||
-    /^sukkot\s*vii/i.test(t)
-  );
+  return /^shavuot$/i.test(t) || /^pesach\s*vii$/i.test(t);
 }
 
 // Returns true for a holiday whose first day can fall on Shabbat and is then
 // followed by a second day that is not Shabbat (Rosh Hashanah).
 function isShabbatYomTovCandidate(title) {
   return /^rosh hashana/i.test((title || '').trim());
+}
+
+// In Israel Shmini Atzeret and Simchat Torah are one day.
+function isSimchatTorah(title, isIsrael) {
+  return isIsrael && /^shmini atzeret$/i.test((title || '').trim());
 }
 
 function isDuringPesach(hm, hd, isIsrael) {
@@ -314,12 +312,27 @@ async function buildEventsList() {
   // yields no plain Shabbat event, and the second day no plain Yom Tov event.
   const shabbatYomTovFridays = new Set();
   const shabbatYomTovDay2Set = new Set();
+  // Shmini Atzeret on Shabbat: the Simchat Torah page already covers that Friday night.
+  const simchatTorahErevs = new Set();
 
   for (const h of items) {
     if (!shouldIncludeHolidayInYomTovList(h)) continue;
     const dStr = h.date.substring(0, 10);
     const d = new Date(`${dStr}T12:00:00`);
     if (shabbatYomTovDay2Set.has(dStr)) continue; // second day already merged into the combined event
+    if (isSimchatTorah(h.title, isIsrael)) {
+      // Also covers Shabbat, which the Saturday branch below would skip.
+      simchatTorahErevs.add(addDaysStr(dStr, -1));
+      yomtovEvents.push({
+        type: 'simchattorah',
+        date: dStr,
+        erev: addDaysStr(dStr, -1),
+        hebrew: h.hebrew,
+        title: h.title,
+        sortKey: dStr,
+      });
+      continue;
+    }
     if (d.getDay() === 6) {
       // Yom Tov on Shabbat itself → combined event (Rosh Hashanah I + II),
       // otherwise skipped entirely like a regular Shabbat page.
@@ -378,7 +391,7 @@ async function buildEventsList() {
   }
   const yomTovDateSet = new Set(yomtovEvents.filter(e => e.type === 'yomtov').map((e) => e.date));
   const shabbatEvents = fridays
-    .filter((friday) => !yomTovDateSet.has(friday) && !yomtovShabbatFridays.has(friday) && !shabbatYomTovFridays.has(friday))
+    .filter((friday) => !yomTovDateSet.has(friday) && !yomtovShabbatFridays.has(friday) && !shabbatYomTovFridays.has(friday) && !simchatTorahErevs.has(friday))
     .map((friday) => ({
       type: 'shabbat',
       friday,
@@ -453,7 +466,6 @@ function isTaaluchaChabad(title, hebrew, isIsrael) {
   const t = (title || '').trim();
   if (/^erev\b/i.test(t)) return false;
   const h = stripNikkud(hebrew || '');
-  if (/^sukkot\s*vii/i.test(t) || /hoshana/i.test(t)) return true;
   if (isIsrael) {
     if (/^pesach vii$/i.test(t) || /פסח\s*ז/.test(h)) return true;
     if (/^shavuot$/i.test(t)) return true;
@@ -517,6 +529,9 @@ function getEventOptionLabel(ev) {
   if (ev.type === 'shabbatyomtov') {
     const name = cleanHolidayName(ev.hebrew, ev.title);
     return `${name} · ${formatGregorianRange(`${ev.friday}T12:00:00`, `${ev.day2}T12:00:00`)}`;
+  }
+  if (ev.type === 'simchattorah') {
+    return `שמחת תורה · ${formatGregorianRange(`${ev.erev}T12:00:00`, `${ev.date}T12:00:00`)}`;
   }
   const sat = addDaysStr(ev.friday, 1);
   return `שבת · ${formatGregorianRange(`${ev.friday}T12:00:00`, `${sat}T12:00:00`)}`;
@@ -1163,7 +1178,7 @@ async function loadShabbatEvent(event) {
 // continuation table whose first visible row falls on an even position in the
 // logical sequence, so the shading continues seamlessly across breaks.
 function alignCompactStripes() {
-  document.querySelectorAll('#layout-yomtov-shabbat .section-compact, #layout-shabbat-yomtov .section-compact').forEach(section => {
+  document.querySelectorAll('#layout-yomtov-shabbat .section-compact, #layout-shabbat-yomtov .section-compact, #layout-simchat-torah .section-compact').forEach(section => {
     const tables = section.querySelectorAll('table.times-table-compact');
     let runningCount = 0;
     tables.forEach(table => {
@@ -1181,31 +1196,34 @@ function alignCompactStripes() {
 
 // ─── Layout switching ──────────────────────────────────────────────────────
 
+const LAYOUT_IDS = [
+  'layout-single',
+  'layout-yomtov-shabbat',
+  'layout-shabbat-yomtov',
+  'layout-simchat-torah',
+];
+
+function showLayout(activeId) {
+  LAYOUT_IDS.forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.style.display = id === activeId ? '' : 'none';
+  });
+}
+
 function showSingleLayout() {
-  const single = document.getElementById('layout-single');
-  const multi = document.getElementById('layout-yomtov-shabbat');
-  const rh = document.getElementById('layout-shabbat-yomtov');
-  if (single) single.style.display = '';
-  if (multi) multi.style.display = 'none';
-  if (rh) rh.style.display = 'none';
+  showLayout('layout-single');
 }
 
 function showMultiLayout() {
-  const single = document.getElementById('layout-single');
-  const multi = document.getElementById('layout-yomtov-shabbat');
-  const rh = document.getElementById('layout-shabbat-yomtov');
-  if (single) single.style.display = 'none';
-  if (multi) multi.style.display = '';
-  if (rh) rh.style.display = 'none';
+  showLayout('layout-yomtov-shabbat');
 }
 
 function showShabbatYomTovLayout() {
-  const single = document.getElementById('layout-single');
-  const multi = document.getElementById('layout-yomtov-shabbat');
-  const rh = document.getElementById('layout-shabbat-yomtov');
-  if (single) single.style.display = 'none';
-  if (multi) multi.style.display = 'none';
-  if (rh) rh.style.display = '';
+  showLayout('layout-shabbat-yomtov');
+}
+
+function showSimchatTorahLayout() {
+  showLayout('layout-simchat-torah');
 }
 
 // ─── Yom Tov into Shabbat (combined two-day) ──────────────────────────────
@@ -1590,6 +1608,84 @@ async function loadShabbatYomTovData(event) {
   }
 }
 
+// ─── Simchat Torah (Shmini Atzeret in Israel) ───────────────────────────────
+
+async function loadSimchatTorahData(event) {
+  showLoading(true);
+  hideError();
+
+  try {
+    showSimchatTorahLayout();
+
+    const dayStr = event.date;
+    const erevStr = event.erev;
+
+    const calUrl = `https://www.hebcal.com/hebcal?v=1&cfg=json&start=${erevStr}&end=${dayStr}&geonameid=${CONFIG.geonameid}&maj=on&M=on&c=on&b=${CONFIG.candleMinutes}&i=on`;
+    const [cal, zmanimErev, zmanimDay, hebrewDay] = await Promise.all([
+      fetchJSON(calUrl),
+      fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${erevStr}`),
+      fetchJSON(`https://www.hebcal.com/zmanim?cfg=json&geonameid=${CONFIG.geonameid}&date=${dayStr}`),
+      fetchJSON(`https://www.hebcal.com/converter?cfg=json&date=${dayStr}&g2h=1`),
+    ]);
+
+    const items = cal.items || [];
+    const candles = items.find((it) => it.category === 'candles' && it.date.substring(0, 10) === erevStr);
+    const havdalah = items.find((it) => it.category === 'havdalah' && it.date.substring(0, 10) === dayStr);
+    if (!candles || !havdalah) {
+      throw new Error('Could not find candle lighting or havdalah times');
+    }
+
+    document.getElementById('title-fixed').textContent = 'זמני תפילות ל';
+    const parashaEl = document.getElementById('parasha-name');
+    parashaEl.textContent = 'שמחת תורה';
+    adjustMainTitleForContent(parashaEl);
+
+    document.getElementById('mevarchim-line').style.display = 'none';
+    document.getElementById('molad-section').style.display = 'none';
+    setSelichotRowsVisible(false);
+
+    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDay.hebrew).replace(
+      /\sב(?=[א-ת])/u,
+      ' ',
+    );
+    document.getElementById('gregorian-date').textContent = formatGregorianRange(
+      `${erevStr}T12:00:00`,
+      `${dayStr}T12:00:00`,
+    );
+
+    document.getElementById('st-candle-time').textContent = extractTime(candles.date);
+    document.getElementById('st-sunset-erev').textContent = extractTime(zmanimErev.times.sunset);
+    document.getElementById('st-shema-time').textContent = extractTime(zmanimDay.times.sofZmanShma);
+    document.getElementById('st-havdalah-time').textContent = extractTime(havdalah.date);
+    document.getElementById('st-tzeit-time').textContent = extractTime(zmanimDay.times.tzaisBaalHatanya);
+    document.getElementById('st-chatzot-time').textContent = extractTime(zmanimDay.times.chatzot);
+
+    const isShabbat = new Date(`${dayStr}T12:00:00`).getDay() === 6;
+    document.getElementById('st-day-title').textContent = isShabbat ? 'שבת · שמחת תורה' : 'שמחת תורה';
+    document.getElementById('st-arvit-time').textContent = extractTime(havdalah.date);
+  } catch (error) {
+    console.error('Error loading Simchat Torah data:', error);
+    showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
+    [
+      'st-candle-time',
+      'st-sunset-erev',
+      'st-shema-time',
+      'st-havdalah-time',
+      'st-tzeit-time',
+      'st-chatzot-time',
+      'st-arvit-time',
+    ].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '__:__';
+    });
+  } finally {
+    showLoading(false);
+    attachRowButtons();
+    alignCompactStripes();
+    fitPageToA4();
+  }
+}
+
 async function loadEventData() {
   if (!events.length) {
     await loadShabbatEventFallback();
@@ -1601,6 +1697,7 @@ async function loadEventData() {
   if (ev.type === 'shabbat') await loadShabbatEvent(ev);
   else if (ev.type === 'yomtovshabbat') await loadYomTovShabbatData(ev);
   else if (ev.type === 'shabbatyomtov') await loadShabbatYomTovData(ev);
+  else if (ev.type === 'simchattorah') await loadSimchatTorahData(ev);
   else await loadYomTovData(ev);
   updateEventNavUI();
 }
@@ -1801,7 +1898,7 @@ function addRow(tableEl, afterRow) {
 
 function attachRowButtons() {
   const editableTables = document.querySelectorAll(
-    '.section .times-table, .section-shabbat .times-table, #layout-yomtov-shabbat .times-table, #layout-shabbat-yomtov .times-table',
+    '.section .times-table, .section-shabbat .times-table, #layout-yomtov-shabbat .times-table, #layout-shabbat-yomtov .times-table, #layout-simchat-torah .times-table',
   );
   editableTables.forEach((table) => {
     table.querySelectorAll('tr').forEach((tr) => {

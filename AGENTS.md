@@ -17,16 +17,18 @@ Plain HTML/CSS/JS — no build system, no dependencies except `html2canvas` (CDN
 
 ## Key concepts
 
-**Layouts**: Three layouts live in the same HTML, toggled by `showSingleLayout()` / `showMultiLayout()` / `showShabbatYomTovLayout()`:
+**Layouts**: Four layouts live in the same HTML, toggled by `showLayout(id)` (wrappers: `showSingleLayout()` / `showMultiLayout()` / `showShabbatYomTovLayout()` / `showSimchatTorahLayout()`):
 - `#layout-single` — regular Shabbat or single Yom Tov
-- `#layout-yomtov-shabbat` — Yom Tov that falls on Friday and rolls into Shabbat (e.g. Shavuot, Hoshana Raba)
+- `#layout-yomtov-shabbat` — Yom Tov that falls on Friday and rolls into Shabbat (e.g. Shavuot)
 - `#layout-shabbat-yomtov` — Shabbat that is Rosh Hashanah I, followed by RH II (shofar only on day 2)
+- `#layout-simchat-torah` — Shmini Atzeret / Simchat Torah (one day in Israel): night with hakafot, then the day
 
 **Event types** (in the `events` array):
 - `shabbat` — regular Friday→Saturday
 - `yomtov` — Yom Tov on a weekday
 - `yomtovshabbat` — Yom Tov on Friday, handled by `loadYomTovShabbatData()`
 - `shabbatyomtov` — Rosh Hashanah I on Shabbat, handled by `loadShabbatYomTovData()`
+- `simchattorah` — Shmini Atzeret in Israel on any weekday, including Shabbat; handled by `loadSimchatTorahData()`; prayer times are hardcoded in `index.html`
 
 **Stripe alignment**: Compact sections split tables with `<div class="decorative-line">`. Call `alignCompactStripes()` after any load to fix odd/even row shading across table breaks.
 
