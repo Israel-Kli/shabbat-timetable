@@ -1663,6 +1663,10 @@ async function loadSimchatTorahData(event) {
     const isShabbat = new Date(`${dayStr}T12:00:00`).getDay() === 6;
     document.getElementById('st-day-title').textContent = isShabbat ? 'שבת · שמחת תורה' : 'שמחת תורה';
     document.getElementById('st-arvit-time').textContent = extractTime(havdalah.date);
+
+    const minchaDate = new Date(zmanimDay.times.sunset);
+    minchaDate.setMinutes(minchaDate.getMinutes() - 20);
+    document.getElementById('st-mincha-time').textContent = extractTime(minchaDate.toISOString());
   } catch (error) {
     console.error('Error loading Simchat Torah data:', error);
     showError('⚠️ שגיאה בטעינת הנתונים. ניתן למלא ידנית ע״י לחיצה על השדות.');
@@ -1674,6 +1678,7 @@ async function loadSimchatTorahData(event) {
       'st-tzeit-time',
       'st-chatzot-time',
       'st-arvit-time',
+      'st-mincha-time',
     ].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = '__:__';
