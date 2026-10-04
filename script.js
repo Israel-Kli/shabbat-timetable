@@ -172,7 +172,7 @@ const HEBREW_MONTHS = {
   Av: 'אב',
   Elul: 'אלול',
   Tishrei: 'תשרי',
-  Cheshvan: 'חשוון',
+  Cheshvan: 'מר-חשון',
   Kislev: 'כסלו',
   Tevet: 'טבת',
   "Sh'vat": 'שבט',
@@ -426,6 +426,12 @@ function extractTime(isoString) {
 
 function stripNikkud(str) {
   return str.replace(/[\u0591-\u05C7]/g, '');
+}
+
+// Hebcal prints Cheshvan as חשון / חשוון / מרחשון; read here as מר-חשון.
+// The leading ב (בחשוון) stays in place, so dates read "כ״ז במר-חשון".
+function fixCheshvan(str) {
+  return (str || '').replace(/מר[-־]?חשו?ון|חשו?ון/g, 'מר-חשון');
 }
 
 function cleanHolidayName(hebrew, fallback) {
@@ -738,7 +744,7 @@ async function loadYomTovData(event) {
     document.getElementById('molad-section').style.display = 'none';
     setSelichotRowsVisible(false);
 
-    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew).replace(
+    document.getElementById('hebrew-date').textContent = fixCheshvan(stripNikkud(hebrewDateData.hebrew)).replace(
       /\sב(?=[א-ת])/u,
       ' ',
     );
@@ -999,7 +1005,7 @@ async function loadShabbatEvent(event) {
     // Tishrei is the one month we do not bless
     const mevarchimEl = document.getElementById('mevarchim-line');
     if (isMevarchim) {
-      mevarchimEl.textContent = mevarchimItem.hebrew || `שבת אחדות, מברכים חודש`;
+      mevarchimEl.textContent = fixCheshvan(mevarchimItem.hebrew) || `שבת אחדות, מברכים חודש`;
       mevarchimEl.style.display = 'block';
     } else if (isShabbatSelichot) {
       mevarchimEl.textContent = 'שבת סליחות';
@@ -1056,7 +1062,7 @@ async function loadShabbatEvent(event) {
     }
 
     // Hebrew date
-    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDateData.hebrew).replace(
+    document.getElementById('hebrew-date').textContent = fixCheshvan(stripNikkud(hebrewDateData.hebrew)).replace(
       /\sב(?=[א-ת])/u,
       ' ',
     );
@@ -1316,8 +1322,8 @@ async function loadYomTovShabbatData(event) {
     // Hebrew date = span both holy days: e.g. "ו׳-ז׳ סיון תשפ״ו"
     // hebrewDateYom1.hebrew  = e.g. "ו׳ בסיון תשפ״ו"
     // hebrewDateShabbat.hebrew = e.g. "ז׳ בסיון תשפ״ו"
-    const hebrewDay1 = stripNikkud(hebrewDateYom1.hebrew);   // e.g. "ו׳ בסיון תשפ״ו"
-    const hebrewDay2 = stripNikkud(hebrewDateShabbat.hebrew); // e.g. "ז׳ בסיון תשפ״ו"
+    const hebrewDay1 = fixCheshvan(stripNikkud(hebrewDateYom1.hebrew));   // e.g. "ו׳ בסיון תשפ״ו"
+    const hebrewDay2 = fixCheshvan(stripNikkud(hebrewDateShabbat.hebrew)); // e.g. "ז׳ בסיון תשפ״ו"
     // Extract day number (everything before first space)
     const dayNum1 = hebrewDay1.split(' ')[0]; // "ו׳"
     const rest2   = hebrewDay2.replace(/^\S+\s*/, '').replace(/^ב(?=[א-ת])/, ''); // "סיון תשפ״ו"
@@ -1535,8 +1541,8 @@ async function loadShabbatYomTovData(event) {
     setSelichotRowsVisible(false);
 
     // Hebrew date = span both holy days: e.g. "א׳-ב׳ תשרי תשפ״ז"
-    const hebrew1 = stripNikkud(hebrewDay1.hebrew);
-    const hebrew2 = stripNikkud(hebrewDay2.hebrew);
+    const hebrew1 = fixCheshvan(stripNikkud(hebrewDay1.hebrew));
+    const hebrew2 = fixCheshvan(stripNikkud(hebrewDay2.hebrew));
     const dayNum1 = hebrew1.split(' ')[0];
     const rest2 = hebrew2.replace(/^\S+\s*/, '').replace(/^ב(?=[א-ת])/, '');
     document.getElementById('hebrew-date').textContent = `${dayNum1}-${hebrew2.split(' ')[0]} ${rest2}`;
@@ -1645,7 +1651,7 @@ async function loadSimchatTorahData(event) {
     document.getElementById('molad-section').style.display = 'none';
     setSelichotRowsVisible(false);
 
-    document.getElementById('hebrew-date').textContent = stripNikkud(hebrewDay.hebrew).replace(
+    document.getElementById('hebrew-date').textContent = fixCheshvan(stripNikkud(hebrewDay.hebrew)).replace(
       /\sב(?=[א-ת])/u,
       ' ',
     );
